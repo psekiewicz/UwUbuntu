@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Paw Updater: system + Flatpak updates in one click (replaces Update Manager).
 
-System packages go through PackageKit (pkcon), so authentication uses the
-normal desktop password prompt; Flatpak apps are updated with flatpak.
+Checking reads apt's package lists (refreshed daily by the system), so it needs
+no password. Updating runs /usr/lib/uwubuntu/paw-updater-helper through pkexec,
+which shows the normal desktop password prompt. Flatpak apps use flatpak.
 """
 
 import os
@@ -13,14 +14,12 @@ import uwubuntu_ui as ui  # noqa: E402
 from uwubuntu_ui import Adw, Gio, Gtk  # noqa: E402
 
 APP_ID = "org.uwubuntu.PawUpdater"
-PKCON_NOTHING_TO_DO = 5  # pkcon's exit code for "no updates"
+HELPER = "/usr/lib/uwubuntu/paw-updater-helper"
+PKEXEC_CANCELLED = (126, 127)  # password dialog dismissed / not authorised
 
 
-def count_pkcon_updates(output):
-    lines = output.splitlines()
-    if "Results:" not in lines:
-        return 0
-    return sum(1 for line in lines[lines.index("Results:") + 1:] if line.strip())
+def count_apt_updates(output):
+    return sum(1 for line in output.splitlines() if "[upgradable from" in line)
 
 
 def count_flatpak_updates(output):
@@ -84,8 +83,7 @@ class UpdaterWindow(Adw.ApplicationWindow):
         self.mode = "check"
         self._busy(True, "Sniffing around for updates...")
         self.runner.run([
-            ["pkcon", "refresh", "--plain"],
-            ["pkcon", "get-updates", "--plain"],
+            ["apt", "list", "--upgradable"],
             ["flatpak", "remote-ls", "--updates", "--columns=application"],
         ])
 
@@ -93,7 +91,7 @@ class UpdaterWindow(Adw.ApplicationWindow):
         self.mode = "update"
         self._busy(True, "Grooming your system, this can take a while...")
         self.runner.run([
-            ["pkcon", "update", "--noninteractive", "--plain"],
+            ["pkexec", HELPER, "update"],
             ["flatpak", "update", "--noninteractive", "-y"],
         ])
 
@@ -101,7 +99,7 @@ class UpdaterWindow(Adw.ApplicationWindow):
         self._busy(False)
         by_cmd = {tuple(argv[:2]): (status, out) for argv, status, out in results}
         if self.mode == "check":
-            system = count_pkcon_updates(by_cmd.get(("pkcon", "get-updates"), (0, ""))[1])
+            system = count_apt_updates(by_cmd.get(("apt", "list"), (0, ""))[1])
             apps = count_flatpak_updates(by_cmd.get(("flatpak", "remote-ls"), (0, ""))[1])
             if system + apps == 0:
                 self.status.set_title("All up to date (^w^)")
@@ -111,9 +109,13 @@ class UpdaterWindow(Adw.ApplicationWindow):
                 self.status.set_description(f"{system} system packages, {apps} Flatpak apps.")
                 self.update_button.set_sensitive(True)
         else:
-            failed = [argv for argv, status, _ in results
-                      if status not in (0, PKCON_NOTHING_TO_DO)]
-            if failed:
+            system_status = by_cmd.get(("pkexec", HELPER), (0, ""))[0]
+            failed = [argv for argv, status, _ in results if status != 0]
+            if system_status in PKEXEC_CANCELLED:
+                self.status.set_title("No password, no grooming")
+                self.status.set_description("System updates need your password. Try again?")
+                self.update_button.set_sensitive(True)
+            elif failed:
                 self.status.set_title("Some updates didn't finish")
                 self.status.set_description("Check the details below, then try again.")
             else:

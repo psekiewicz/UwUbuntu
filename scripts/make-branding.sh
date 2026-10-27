@@ -60,7 +60,7 @@ log "Building .debs"
 find "$PKG" "$APPS" "$LIVE" -type d -exec chmod 0755 {} +
 find "$PKG" "$APPS" "$LIVE" -type f -exec chmod 0644 {} +
 chmod 0755 "$PKG"/DEBIAN/{preinst,postinst,prerm,postrm} "$PKG"/usr/bin/* "$PKG"/etc/update-motd.d/*
-chmod 0755 "$APPS"/usr/bin/*
+chmod 0755 "$APPS"/usr/bin/* "$APPS"/usr/lib/uwubuntu/paw-updater-helper
 chmod 0755 "$LIVE"/usr/lib/uwubuntu/installer/*
 for dir in "$PKG" "$APPS"; do
   echo "Installed-Size: $(du -sk --exclude=DEBIAN "$dir" | cut -f1)" >> "$dir/DEBIAN/control"

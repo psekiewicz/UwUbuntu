@@ -10,7 +10,6 @@ xdg-terminal-exec
 gnome-software
 gnome-software-plugin-flatpak
 flatpak
-packagekit-tools
 
 # GNOME extras (the animation extensions come from config/gnome-extensions.list)
 gnome-tweaks
