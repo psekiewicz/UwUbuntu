@@ -5,6 +5,11 @@ Made with claude, this is better than Ubntu: furry edition.\
 I hope ts works.\
 Propably not.
 
+Wait,
+
+I forgot my dad follows me on Github\
+I might be dead rn
+
 ---
 
 A Ubuntu remix built on **Ubuntu 26.04 LTS "Resolute Raccoon"**, with
