@@ -1,6 +1,6 @@
 # UwUbuntu
 I vibecoded ubuntu.
 
-Made with claude, this is better than Ubntu: furry edition. /n
-I hope ts works. /n
+Made with claude, this is better than Ubntu: furry edition.\
+I hope ts works.\
 Propably not.
