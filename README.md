@@ -144,9 +144,8 @@ WebP all work; the paths are in `scripts/make-branding.sh`):
 - `grub-background.svg`: **placeholder** boot menu background, to be replaced.
   Keep the middle clear (roughly 25–75% across, 36–78% down), since that's
   where the menu is drawn and the logo sits just above it
-- `icons/welcome.svg`, `icons/settings.svg`, `icons/paw-updater.svg`:
-  **placeholder** icons for the three apps. Replace with `.svg` or a square `.png`
-  (256 px or bigger) of the same name
+- `icons/welcome.png`, `icons/settings.png`, `icons/paw-updater.png`: icons for
+  UwU Welcome, UwU Settings and Paw Updater (square, 256 px or bigger; `.svg` works too)
 - Wishlist, not wired up yet: a paw cursor theme, a mascot character for the
   installer slideshow, login/notification sounds, extra wallpapers, and 4K
   versions of the wallpapers (the current ones are 1920×1080)
