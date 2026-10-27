@@ -1,0 +1,510 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171717">
+  <meta name="description" content="UwUbuntu — Ubuntu with a little more UwU.">
+  <title>UwUbuntu :3</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #171717;
+      --surface: #202020;
+      --surface-hover: #292929;
+      --orange: #e95420;
+      --text: #f5f5f5;
+      --muted: #b5b5b5;
+      --border: #383838;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 90px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Ubuntu, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 5px;
+      border-radius: 4px;
+    }
+
+    .container {
+      width: min(1080px, calc(100% - 40px));
+      margin-inline: auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgb(23 23 23 / 94%);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    nav {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--orange);
+    }
+
+    .hero {
+      min-height: 570px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: center;
+      gap: 52px;
+      padding-block: 72px;
+    }
+
+    .eyebrow {
+      color: var(--orange);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 12px 0 20px;
+      font-size: clamp(3rem, 7vw, 5.6rem);
+      line-height: 1.02;
+      letter-spacing: -4px;
+    }
+
+    h1 span {
+      color: var(--orange);
+    }
+
+    .hero p {
+      max-width: 490px;
+      color: var(--muted);
+      font-size: 1.12rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 19px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-weight: 700;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button-primary {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: white;
+    }
+
+    .button-primary:hover {
+      background: #f36532;
+    }
+
+    .button-secondary:hover {
+      background: var(--surface-hover);
+    }
+
+    .logo-panel {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at center, #3a241d 0, transparent 72%),
+        var(--surface);
+    }
+
+    .logo {
+      display: block;
+      width: 100%;
+      max-width: 390px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    section {
+      padding-block: 72px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-heading {
+      max-width: 650px;
+      margin-bottom: 32px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .card:hover {
+      background: var(--surface-hover);
+      border-color: #65402f;
+    }
+
+    .card-icon {
+      display: inline-grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      background: #3a241d;
+      color: var(--orange);
+      font-size: 1.2rem;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1.15rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .project-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 28px;
+      padding: 30px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .project-panel h3 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+    }
+
+    .project-panel p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .code-block {
+      overflow-x: auto;
+      margin-top: 22px;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #101010;
+      color: #f4b39b;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      padding-block: 28px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    footer a {
+      color: var(--text);
+    }
+
+    footer a:hover {
+      color: var(--orange);
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        gap: 36px;
+        padding-block: 58px;
+      }
+
+      .logo-panel {
+        grid-row: 1;
+        padding: 20px;
+      }
+
+      .logo {
+        max-width: 290px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .project-panel {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        letter-spacing: -2px;
+      }
+
+      section {
+        padding-block: 52px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .container {
+        width: min(100% - 28px, 1080px);
+      }
+
+      nav {
+        gap: 12px;
+      }
+
+      .nav-links {
+        gap: 12px;
+        font-size: 0.82rem;
+      }
+
+      .brand {
+        font-size: 1rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <nav class="container" aria-label="Main navigation">
+      <a class="brand" href="#home">
+        <span class="brand-dot" aria-hidden="true"></span>
+        UwUbuntu
+      </a>
+
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#project">Project</a>
+        <a href="https://github.com/psekiewicz/UwUbuntu"
+           target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="hero" id="home" style="border-top: 0;">
+        <div>
+          <div class="eyebrow">A little Linux project</div>
+          <h1>Ubuntu,<br>but <span>uwu.</span></h1>
+
+          <p>
+            A playful Ubuntu-inspired project with a cat, a little personality,
+            and an appreciation for Linux. :3
+          </p>
+
+          <div class="actions">
+            <a class="button button-primary"
+               href="https://github.com/psekiewicz/UwUbuntu"
+               target="_blank" rel="noopener noreferrer">
+              View on GitHub ↗
+            </a>
+
+            <a class="button button-secondary" href="#about">
+              Discover more
+            </a>
+          </div>
+        </div>
+
+        <div class="logo-panel">
+          <img
+            class="logo"
+            src="art/logo.png"
+            alt="UwUbuntu cat logo"
+            width="420"
+            height="420"
+            fetchpriority="high"
+          >
+        </div>
+      </section>
+
+      <section id="about">
+        <div class="section-heading">
+          <div class="eyebrow">What's this?</div>
+          <h2>Linux, with personality.</h2>
+          <p>
+            UwUbuntu brings together the familiar Ubuntu aesthetic and
+            a playful cat-themed identity.
+          </p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">⌘</div>
+            <h3>Linux-inspired</h3>
+            <p>
+              Inspired by Ubuntu and the open-source world.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">:3</div>
+            <h3>Cat energy</h3>
+            <p>
+              A friendly visual identity that doesn't take itself too seriously.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">⌁</div>
+            <h3>Open source</h3>
+            <p>
+              Explore the repository, check the files, and follow development
+              on GitHub.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="project">
+        <div class="section-heading">
+          <div class="eyebrow">The repository</div>
+          <h2>Take a look inside.</h2>
+          <p>
+            Visit the source repository to explore the project and its assets.
+          </p>
+        </div>
+
+        <div class="project-panel">
+          <div>
+            <h3>psekiewicz / UwUbuntu</h3>
+            <p>
+              The project source and artwork are available on GitHub.
+            </p>
+          </div>
+
+          <a class="button button-primary"
+             href="https://github.com/psekiewicz/UwUbuntu"
+             target="_blank" rel="noopener noreferrer">
+            Open repository ↗
+          </a>
+        </div>
+
+        <div class="code-block">
+          <code>git clone https://github.com/psekiewicz/UwUbuntu.git</code>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>Made with :3 and a little Ubuntu orange.</span>
+      <a href="https://github.com/psekiewicz/UwUbuntu"
+         target="_blank" rel="noopener noreferrer">
+        UwUbuntu on GitHub ↗
+      </a>
+    </div>
+  </footer>
+</body>
+</html>
