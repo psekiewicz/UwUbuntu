@@ -142,7 +142,13 @@ fi
 
 log "Installer + UwUbuntu branding and apps"
 fix_dns
-"${APT[@]}" install calamares "$IN"/uwubuntu-*_all.deb
+"${APT[@]}" install calamares rsync fdisk "$IN"/uwubuntu-*_all.deb
+# Calamares shells out to these; a missing one only shows up mid-install
+# (rsync once failed with "error code 127"), so fail the build instead.
+for tool in rsync mount umount mkfs.ext4 mkfs.fat sfdisk efibootmgr grub-install grub-mkconfig \
+            update-initramfs; do
+  command -v "$tool" >/dev/null || { warn "installer needs '$tool' but it isn't in the image"; exit 1; }
+done
 # Fail the build (rather than ship broken apps) if GTK/libadwaita won't load
 python3 -c 'import sys; sys.path.insert(0, "/usr/lib/uwubuntu"); import uwubuntu_ui' \
   && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater
