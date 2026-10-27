@@ -65,8 +65,12 @@ ln -sf /etc/machine-id /var/lib/dbus/machine-id
 
 log "Kernel, live boot and bootloader tools"
 fix_dns
+# grub-efi-amd64 (not grub-pc): UEFI is the main target, and installing it
+# here keeps every GRUB package at matching versions. BIOS installs swap to
+# grub-pc in post-install.sh. Don't touch NVRAM from inside a chroot.
+echo "grub-efi-amd64 grub2/update_nvram boolean false" | debconf-set-selections
 "${APT[@]}" install linux-generic casper laptop-detect os-prober network-manager locales \
-  grub-common grub2-common grub-gfxpayload-lists grub-pc-bin grub-efi-amd64-bin \
+  grub-common grub2-common grub-gfxpayload-lists grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 \
   grub-efi-amd64-signed shim-signed efibootmgr mtools dosfstools
 
 log "Firefox straight from Mozilla (Ubuntu's 'firefox' is a snap wrapper)"
@@ -152,17 +156,14 @@ done
 # Fail the build (rather than ship broken apps) if GTK/libadwaita won't load
 python3 -c 'import sys; sys.path.insert(0, "/usr/lib/uwubuntu"); import uwubuntu_ui' \
   && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater
-# The installed system needs exactly one of these, depending on BIOS vs UEFI;
-# post-install.sh picks the right one offline.
-# The image already has grub-pc (BIOS), pulled in by the desktop. For UEFI
-# installs carry grub-efi-amd64 plus whatever it needs that the image lacks;
-# post-install.sh swaps it in with apt, which (unlike dpkg -i) can replace
-# the conflicting grub-pc offline.
-dir=/var/cache/uwubuntu/bootloader/efi
+# The image boots UEFI machines with grub-efi-amd64 (installed above). For
+# BIOS installs carry grub-pc plus anything it needs that the image lacks;
+# post-install.sh swaps it in with apt, offline.
+dir=/var/cache/uwubuntu/bootloader/bios
 mkdir -p "$dir/partial"
-apt-get install -y --download-only -o Dir::Cache::archives="$dir" grub-efi-amd64
+apt-get install -y --download-only -o Dir::Cache::archives="$dir" grub-pc
 rm -rf "$dir/partial" "$dir/lock"
-ls "$dir"/grub-efi-amd64_*.deb >/dev/null || { warn "grub-efi-amd64 wasn't downloaded"; exit 1; }
+ls "$dir"/grub-pc_*.deb >/dev/null || { warn "grub-pc wasn't downloaded"; exit 1; }
 cp -r "$IN/live/." /   # plain -r: never touch ownership/modes of existing dirs
 glib-compile-schemas /usr/share/glib-2.0/schemas   # live-only defaults in live/
 
@@ -262,6 +263,11 @@ done
 if ! dpkg -s snapd >/dev/null 2>&1; then
   rm -rf /snap /var/snap /var/lib/snapd /var/cache/snapd
   printf 'Package: snapd\nPin: release a=*\nPin-Priority: -10\n' > /etc/apt/preferences.d/no-snap
+fi
+
+# A later package pulling grub-pc in would have swapped grub-efi-amd64 out.
+if ! dpkg-query -W -f='${Status}' grub-efi-amd64 2>/dev/null | grep -q 'ok installed'; then
+  warn "grub-efi-amd64 is no longer installed (something pulled grub-pc back in)"; exit 1
 fi
 
 log "Regenerating initramfs (casper + boot splash)"

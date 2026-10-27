@@ -5,14 +5,17 @@ set -u
 export DEBIAN_FRONTEND=noninteractive
 DEBS=/var/cache/uwubuntu/bootloader
 
-# The image ships grub-pc (BIOS). On UEFI machines swap in grub-efi-amd64,
-# bundled with its dependencies; apt (unlike dpkg -i) removes the conflicting
-# grub-pc for us, offline. Without it GRUB isn't refreshed on updates.
+# The image ships grub-efi-amd64 (UEFI). On BIOS machines swap in grub-pc,
+# bundled with its dependencies; apt removes grub-efi-amd64 for us, offline.
+# Booting doesn't depend on this (grub-install uses grub-pc-bin either way);
+# it keeps GRUB refreshed on updates.
 echo "grub-pc grub-pc/install_devices_empty boolean true" | debconf-set-selections
-if [ -d /sys/firmware/efi ]; then
-    apt-get install -y --no-download -o Dpkg::Options::=--force-confold "$DEBS"/efi/*.deb \
-        || echo "post-install: grub-efi-amd64 failed" >&2
+if [ ! -d /sys/firmware/efi ]; then
+    apt-get install -y --no-download -o Dpkg::Options::=--force-confold "$DEBS"/bios/*.deb \
+        || echo "post-install: grub-pc failed" >&2
 fi
+# Whatever happened above, leave apt consistent so the cleanup below works.
+apt-get install -y -f --no-download || true
 rm -rf /var/cache/uwubuntu
 
 apt-get -y purge calamares casper || true
