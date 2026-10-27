@@ -154,15 +154,15 @@ python3 -c 'import sys; sys.path.insert(0, "/usr/lib/uwubuntu"); import uwubuntu
   && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater
 # The installed system needs exactly one of these, depending on BIOS vs UEFI;
 # post-install.sh picks the right one offline.
-# Each with everything it pulls in that the image lacks: on 26.04 a bare
-# "apt-get download grub-efi-amd64" left dpkg -i with unmet dependencies.
-for flavour in efi:grub-efi-amd64 bios:grub-pc; do
-  dir="/var/cache/uwubuntu/bootloader/${flavour%%:*}"
-  mkdir -p "$dir/partial"
-  apt-get install -y --download-only -o Dir::Cache::archives="$dir" "${flavour#*:}"
-  rm -rf "$dir/partial" "$dir/lock"
-  ls "$dir"/*.deb >/dev/null || { warn "no packages downloaded for ${flavour#*:}"; exit 1; }
-done
+# The image already has grub-pc (BIOS), pulled in by the desktop. For UEFI
+# installs carry grub-efi-amd64 plus whatever it needs that the image lacks;
+# post-install.sh swaps it in with apt, which (unlike dpkg -i) can replace
+# the conflicting grub-pc offline.
+dir=/var/cache/uwubuntu/bootloader/efi
+mkdir -p "$dir/partial"
+apt-get install -y --download-only -o Dir::Cache::archives="$dir" grub-efi-amd64
+rm -rf "$dir/partial" "$dir/lock"
+ls "$dir"/grub-efi-amd64_*.deb >/dev/null || { warn "grub-efi-amd64 wasn't downloaded"; exit 1; }
 cp -r "$IN/live/." /   # plain -r: never touch ownership/modes of existing dirs
 
 log "Live session (casper)"
