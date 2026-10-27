@@ -1,5 +1,5 @@
 // UwUbuntu top bar for the Hyprland session.
-// Copy to ~/.config/waybar/ to customise.
+// Edit freely: this is your copy.
 {
   "layer": "top",
   "position": "top",

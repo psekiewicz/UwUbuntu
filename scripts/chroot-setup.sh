@@ -123,6 +123,23 @@ for uuid in "${extensions[@]}"; do
 done
 glib-compile-schemas /usr/share/glib-2.0/schemas
 
+log "Checking UwUbuntu packages for file clashes"
+# dpkg stops at the first file another package owns; list them all at once.
+# The diverted files are expected (the branding preinst diverts them).
+DIVERTED=' /usr/lib/os-release /etc/issue /etc/issue.net '
+clashes=""
+for deb in "$IN"/uwubuntu-*_all.deb; do
+  while IFS= read -r path; do
+    [[ "$DIVERTED" == *" $path "* ]] && continue
+    owner="$(dpkg-query -S "$path" 2>/dev/null | cut -d: -f1 || true)"
+    [[ -n "$owner" ]] && clashes+="  $path (already in $owner)"$'\n'
+  done < <(dpkg-deb --fsys-tarfile "$deb" | tar -t | sed -n 's#^\./#/#p' | grep -v '/$')
+done
+if [[ -n "$clashes" ]]; then
+  printf '\e[1;31m[chroot] error:\e[0m these files clash with installed packages:\n%s' "$clashes" >&2
+  exit 1
+fi
+
 log "Installer + UwUbuntu branding and apps"
 fix_dns
 "${APT[@]}" install calamares "$IN"/uwubuntu-*_all.deb
