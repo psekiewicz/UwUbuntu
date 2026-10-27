@@ -1,0 +1,2 @@
+# UwUbuntu
+I vibecoded ubuntu.
