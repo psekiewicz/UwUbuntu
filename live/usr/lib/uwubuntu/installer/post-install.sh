@@ -18,5 +18,6 @@ rm -rf /var/cache/uwubuntu
 apt-get -y purge calamares casper || true
 apt-get -y autoremove --purge || true
 rm -rf /etc/calamares /usr/share/applications/uwubuntu-installer.desktop /usr/lib/uwubuntu/installer
-rm -f /etc/xdg/autostart/uwubuntu-live-noblank.desktop
+rm -f /usr/share/glib-2.0/schemas/95_uwubuntu-live.gschema.override
+glib-compile-schemas /usr/share/glib-2.0/schemas || true
 exit 0

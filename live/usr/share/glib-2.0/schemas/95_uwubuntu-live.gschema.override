@@ -1,0 +1,13 @@
+# Live session only (post-install.sh deletes this): never blank or lock the
+# screen, which otherwise looks like the live USB froze.
+[org.gnome.desktop.session]
+idle-delay=uint32 0
+
+[org.gnome.desktop.session:ubuntu]
+idle-delay=uint32 0
+
+[org.gnome.desktop.screensaver]
+lock-enabled=false
+
+[org.gnome.desktop.screensaver:ubuntu]
+lock-enabled=false

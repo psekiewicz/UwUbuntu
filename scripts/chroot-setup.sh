@@ -164,6 +164,7 @@ apt-get install -y --download-only -o Dir::Cache::archives="$dir" grub-efi-amd64
 rm -rf "$dir/partial" "$dir/lock"
 ls "$dir"/grub-efi-amd64_*.deb >/dev/null || { warn "grub-efi-amd64 wasn't downloaded"; exit 1; }
 cp -r "$IN/live/." /   # plain -r: never touch ownership/modes of existing dirs
+glib-compile-schemas /usr/share/glib-2.0/schemas   # live-only defaults in live/
 
 log "Live session (casper)"
 cat > /etc/casper.conf <<EOF
