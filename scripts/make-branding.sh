@@ -29,6 +29,7 @@ for size in 48 64 128 256; do
   img2png "$ART/logo.png" $size $size "$PKG/usr/share/icons/hicolor/${size}x${size}/apps/uwubuntu-logo.png"
 done
 img2png "$ART/logo.png" 256 256 "$PKG/usr/share/pixmaps/uwubuntu-logo.png"
+img2png "$ART/logo.png" 96 96 "$PKG/usr/share/pixmaps/uwubuntu-logo-gdm.png"
 # Boot splash
 img2png "$ART/logo.png" 200 200 "$PKG/usr/share/plymouth/themes/uwubuntu/logo.png"
 img2png "$ART/paw.svg"   36  36 "$PKG/usr/share/plymouth/themes/uwubuntu/paw.png"

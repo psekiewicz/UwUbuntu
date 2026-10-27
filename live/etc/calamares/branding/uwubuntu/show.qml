@@ -5,6 +5,13 @@ import calamares.slideshow 1.0
 Presentation {
     id: presentation
 
+    // Fills the white frame Calamares leaves around the slides
+    Rectangle {
+        anchors.fill: parent
+        color: "#2b1610"
+        z: -1
+    }
+
     Timer {
         interval: 7000
         running: presentation.activatedInCalamares

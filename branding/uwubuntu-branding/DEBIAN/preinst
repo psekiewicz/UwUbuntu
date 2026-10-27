@@ -4,7 +4,7 @@ set -e
 # base-files owns these; divert Ubuntu's copies so ours can take their place
 # and survive base-files upgrades.
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
-    for f in /usr/lib/os-release /etc/issue /etc/issue.net; do
+    for f in /usr/lib/os-release /etc/lsb-release /etc/issue /etc/issue.net; do
         dpkg-divert --package uwubuntu-branding --add --rename --divert "$f.ubuntu" "$f"
     done
 fi

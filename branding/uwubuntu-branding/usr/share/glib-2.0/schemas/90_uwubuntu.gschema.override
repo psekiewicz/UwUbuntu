@@ -74,3 +74,10 @@ dock-position='BOTTOM'
 extend-height=false
 dash-max-icon-size=48
 transparency-mode='DYNAMIC'
+
+# --- Login screen (replaces Ubuntu's logo at the bottom) ----------------------
+[org.gnome.login-screen]
+logo='/usr/share/pixmaps/uwubuntu-logo-gdm.png'
+
+[org.gnome.login-screen:GNOME-Greeter]
+logo='/usr/share/pixmaps/uwubuntu-logo-gdm.png'

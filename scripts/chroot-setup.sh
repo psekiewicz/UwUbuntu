@@ -126,7 +126,7 @@ glib-compile-schemas /usr/share/glib-2.0/schemas
 log "Checking UwUbuntu packages for file clashes"
 # dpkg stops at the first file another package owns; list them all at once.
 # The diverted files are expected (the branding preinst diverts them).
-DIVERTED=' /usr/lib/os-release /etc/issue /etc/issue.net '
+DIVERTED=' /usr/lib/os-release /etc/lsb-release /etc/issue /etc/issue.net '
 clashes=""
 for deb in "$IN"/uwubuntu-*_all.deb; do
   while IFS= read -r path; do
@@ -154,8 +154,15 @@ python3 -c 'import sys; sys.path.insert(0, "/usr/lib/uwubuntu"); import uwubuntu
   && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater
 # The installed system needs exactly one of these, depending on BIOS vs UEFI;
 # post-install.sh picks the right one offline.
-mkdir -p /var/cache/uwubuntu/bootloader
-(cd /var/cache/uwubuntu/bootloader && apt-get download grub-efi-amd64 grub-pc)
+# Each with everything it pulls in that the image lacks: on 26.04 a bare
+# "apt-get download grub-efi-amd64" left dpkg -i with unmet dependencies.
+for flavour in efi:grub-efi-amd64 bios:grub-pc; do
+  dir="/var/cache/uwubuntu/bootloader/${flavour%%:*}"
+  mkdir -p "$dir/partial"
+  apt-get install -y --download-only -o Dir::Cache::archives="$dir" "${flavour#*:}"
+  rm -rf "$dir/partial" "$dir/lock"
+  ls "$dir"/*.deb >/dev/null || { warn "no packages downloaded for ${flavour#*:}"; exit 1; }
+done
 cp -r "$IN/live/." /   # plain -r: never touch ownership/modes of existing dirs
 
 log "Live session (casper)"

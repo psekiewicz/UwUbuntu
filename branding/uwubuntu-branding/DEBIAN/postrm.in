@@ -2,7 +2,7 @@
 set -e
 
 if [ "$1" = remove ] || [ "$1" = purge ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
-    for f in /usr/lib/os-release /etc/issue /etc/issue.net; do
+    for f in /usr/lib/os-release /etc/lsb-release /etc/issue /etc/issue.net; do
         dpkg-divert --package uwubuntu-branding --remove --rename --divert "$f.ubuntu" "$f"
     done
     rm -f "/usr/share/python-apt/templates/@DISTRO_NAME@.info" \
