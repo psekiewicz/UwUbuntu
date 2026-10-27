@@ -169,20 +169,37 @@ echo 'LANG=en_US.UTF-8' > /etc/default/locale
 log "UwUbuntu desktop metapackage"
 # Ubuntu's ubuntu-desktop-minimal depends on update-manager and friends, so it
 # goes when they do, and then nothing pulls new desktop packages in on upgrade.
-# Like Linux Mint, replace it with our own copy of its dependency list: minus
-# what we remove, plus our extras.
+# Like Linux Mint, replace it with our own copy of its dependency list, minus
+# everything the removals below would take with them (including the cascade,
+# e.g. ubuntu-release-upgrader-gtk needs update-manager), plus our extras.
+# These must survive the removals; ubuntu-desktop-minimal may go, since
+# uwubuntu-desktop replaces it.
+PROTECTED=(ubuntu-minimal ubuntu-standard uwubuntu-desktop uwubuntu-branding uwubuntu-apps
+           gnome-shell gdm3)
+mapfile -t unwanted < <(read_list "$IN/packages-remove.list")
+installed_unwanted=()
+for pkg in "${unwanted[@]}"; do
+  if dpkg -s "$pkg" >/dev/null 2>&1; then installed_unwanted+=("$pkg"); fi
+done
+# apt's simulation prints "Remv pkg [ver]" for removals and "Purg pkg [ver]"
+# for purges. Captured first: piping straight into grep can SIGPIPE apt.
+simulation="$(apt-get -s purge "${installed_unwanted[@]}" 2>/dev/null || true)"
+sed -nE 's/^(Remv|Purg) ([^ :]+).*/\2/p' <<<"$simulation" | sort -u \
+  | { grep -vxF -f <(printf '%s\n' "${PROTECTED[@]}") || true; } > "$IN/going-away.list"
+log "  removing Canonical's tools also takes: $(tr '\n' ' ' < "$IN/going-away.list")"
+
 mkdir -p "$IN/desktop/DEBIAN"
-python3 - "$PKG_VERSION" "$IN/packages-remove.list" "$IN/packages.list" \
+python3 - "$PKG_VERSION" "$IN/going-away.list" "$IN/packages-remove.list" "$IN/packages.list" \
   > "$IN/desktop/DEBIAN/control" <<'PY'
 import re, subprocess, sys
 
-version, remove_list, extras_list = sys.argv[1:4]
+version, going_away, remove_list, extras_list = sys.argv[1:5]
 
 def names(path):
     with open(path, encoding="utf-8") as f:
         return [l.split("#", 1)[0].strip() for l in f if l.split("#", 1)[0].strip()]
 
-unwanted = set(names(remove_list))
+excluded = set(names(going_away)) | set(names(remove_list))
 show = subprocess.run(["apt-cache", "show", "--no-all-versions", "ubuntu-desktop-minimal"],
                       capture_output=True, text=True, check=True).stdout
 fields = dict(re.findall(r"^(Depends|Recommends): (.*)$", show, re.M))
@@ -191,7 +208,7 @@ def keep(field):
     kept = []
     for dep in fields.get(field, "").split(","):
         alts = [a.strip() for a in dep.split("|") if a.strip()]
-        alts = [a for a in alts if re.split(r"[ (:]", a)[0] not in unwanted]
+        alts = [a for a in alts if re.split(r"[ (:]", a)[0] not in excluded]
         if alts:
             kept.append(" | ".join(alts))
     return kept
@@ -199,7 +216,8 @@ def keep(field):
 installed = set(subprocess.run(["dpkg-query", "-W", "-f=${Package}\n"],
                                capture_output=True, text=True).stdout.split())
 depends = keep("Depends") + ["uwubuntu-branding", "uwubuntu-apps"]
-recommends = keep("Recommends") + [p for p in names(extras_list) if p in installed]
+recommends = keep("Recommends") + [p for p in names(extras_list)
+                                   if p in installed and p not in excluded]
 print("Package: uwubuntu-desktop")
 print(f"Version: {version}")
 print("Architecture: all")
@@ -217,21 +235,14 @@ dpkg-deb --root-owner-group --build "$IN/desktop" "$IN/uwubuntu-desktop_${PKG_VE
 "${APT[@]}" install "$IN/uwubuntu-desktop_${PKG_VERSION}_all.deb"
 
 log "Removing unwanted packages"
-# Never let a removal drag these out with it (they hold the desktop together,
-# and losing them would make autoremove delete everything they brought in).
-# ubuntu-desktop-minimal may go: uwubuntu-desktop replaces it.
-PROTECTED='^Remv (ubuntu-minimal|ubuntu-standard|uwubuntu-[a-z]+|gnome-shell|gdm3)[ :]'
-mapfile -t unwanted < <(read_list "$IN/packages-remove.list")
-for pkg in "${unwanted[@]}"; do
-  dpkg -s "$pkg" >/dev/null 2>&1 || continue
-  # Save the simulation first: piping it into "grep -q" lets grep exit early,
-  # apt dies of SIGPIPE, and with pipefail the match reads as "no match".
-  simulation="$(apt-get -s purge "$pkg" 2>/dev/null || true)"
-  if grep -qE "$PROTECTED" <<<"$simulation"; then
+# Hold what keeps the desktop together (PROTECTED, above): apt then refuses,
+# and we skip, any removal that would take one of these with it.
+apt-mark hold "${PROTECTED[@]}"
+for pkg in "${installed_unwanted[@]}"; do
+  dpkg -s "$pkg" >/dev/null 2>&1 || continue   # already gone with an earlier one
+  if ! "${APT[@]}" purge "$pkg"; then
     warn "keeping '$pkg': removing it would also remove the desktop"
-    continue
   fi
-  "${APT[@]}" purge "$pkg"
 done
 # Keep snap from sneaking back in through a dependency (same as Linux Mint).
 if ! dpkg -s snapd >/dev/null 2>&1; then
@@ -244,6 +255,7 @@ update-initramfs -u -k all
 
 log "Cleaning up"
 "${APT[@]}" autoremove --purge
+apt-mark unhold "${PROTECTED[@]}"   # held packages would never get upgrades
 apt-get clean
 rm -rf /var/lib/apt/lists/* /var/tmp/* /root/.bash_history
 : > /etc/machine-id
