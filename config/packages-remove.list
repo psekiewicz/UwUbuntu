@@ -1,0 +1,3 @@
+# Packages purged from the image after everything else is installed.
+ubuntu-report
+popularity-contest

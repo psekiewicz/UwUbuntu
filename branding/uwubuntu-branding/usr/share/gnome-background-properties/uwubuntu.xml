@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+  <wallpaper deleted="false">
+    <name>UwUbuntu Pawprints</name>
+    <filename>/usr/share/backgrounds/uwubuntu/uwubuntu-day.png</filename>
+    <filename-dark>/usr/share/backgrounds/uwubuntu/uwubuntu-night.png</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#1b1030</pcolor>
+    <scolor>#1b1030</scolor>
+  </wallpaper>
+</wallpapers>

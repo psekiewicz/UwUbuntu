@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install @DISTRO_NAME@
+Comment=Bring @DISTRO_NAME@ home to your computer
+Exec=sh -c "sudo -E calamares"
+Icon=uwubuntu-logo
+Terminal=false
+Categories=System;
+Keywords=installer;calamares;install;

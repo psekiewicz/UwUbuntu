@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+
+THEME=/usr/share/plymouth/themes/uwubuntu/uwubuntu.plymouth
+TEMPLATES=/usr/share/python-apt/templates
+
+if [ "$1" = configure ]; then
+    update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
+        default.plymouth "$THEME" 150
+    update-alternatives --set default.plymouth "$THEME"
+
+    # add-apt-repository looks up distro templates by name; reuse Ubuntu's so
+    # PPAs keep working.
+    if [ -d "$TEMPLATES" ]; then
+        [ -e "$TEMPLATES/@DISTRO_NAME@.info" ] || ln -s Ubuntu.info "$TEMPLATES/@DISTRO_NAME@.info"
+        [ -e "$TEMPLATES/@DISTRO_NAME@.mirrors" ] || ln -s Ubuntu.mirrors "$TEMPLATES/@DISTRO_NAME@.mirrors"
+    fi
+
+    if ! ischroot 2>/dev/null; then
+        command -v update-initramfs >/dev/null && update-initramfs -u || true
+        command -v update-grub >/dev/null && [ -d /boot/grub ] && update-grub || true
+    fi
+fi

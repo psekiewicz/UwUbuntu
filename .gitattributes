@@ -1,0 +1,5 @@
+# Everything here ends up on Linux: never let Windows checkouts add CRLFs.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ttf binary

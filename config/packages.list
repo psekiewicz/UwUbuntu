@@ -1,0 +1,26 @@
+# Extra packages installed on top of ubuntu-desktop-minimal.
+# One per line; '#' starts a comment.
+
+# App store with Flatpak/Flathub instead of an unseeded Snap store
+gnome-software
+gnome-software-plugin-flatpak
+flatpak
+
+# Terminal fun
+fastfetch
+cowsay
+fortune-mod
+lolcat
+sl
+
+# Everyday goodies
+gnome-tweaks
+gnome-shell-extension-manager
+ubuntu-restricted-addons
+vlc
+gimp
+inkscape
+krita
+
+# Community favourites
+gnome-shell-extension-appindicator

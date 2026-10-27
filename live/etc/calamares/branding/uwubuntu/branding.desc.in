@@ -1,0 +1,38 @@
+---
+componentName: uwubuntu
+
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 920px,640px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+
+strings:
+  productName:         "@DISTRO_NAME@"
+  shortProductName:    "@DISTRO_NAME@"
+  version:             "@DISTRO_VERSION@@DISTRO_VERSION_SUFFIX@"
+  shortVersion:        "@DISTRO_VERSION@"
+  versionedName:       "@DISTRO_NAME@ @DISTRO_VERSION@@DISTRO_VERSION_SUFFIX@ \"@DISTRO_CODENAME_PRETTY@\""
+  shortVersionedName:  "@DISTRO_NAME@ @DISTRO_VERSION@"
+  bootloaderEntryName: "@DISTRO_NAME@"
+  productUrl:          "@DISTRO_HOME_URL@"
+  supportUrl:          "@DISTRO_SUPPORT_URL@"
+  knownIssuesUrl:      "@DISTRO_BUG_URL@"
+  releaseNotesUrl:     "@DISTRO_HOME_URL@"
+  donateUrl:           "@DISTRO_HOME_URL@"
+
+images:
+  productLogo:    "logo.png"
+  productIcon:    "logo.png"
+  productWelcome: "welcome.png"
+
+slideshow: "show.qml"
+slideshowAPI: 2
+
+style:
+  SidebarBackground:        "#1b1030"
+  SidebarText:              "#f5e6ff"
+  SidebarTextCurrent:       "#ffffff"
+  SidebarBackgroundCurrent: "#c2459a"

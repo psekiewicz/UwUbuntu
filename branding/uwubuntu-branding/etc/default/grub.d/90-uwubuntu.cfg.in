@@ -1,0 +1,6 @@
+# UwUbuntu: show the themed boot menu instead of Ubuntu's hidden one.
+GRUB_DISTRIBUTOR="@DISTRO_NAME@"
+GRUB_TIMEOUT_STYLE=menu
+GRUB_TIMEOUT=5
+GRUB_GFXMODE=auto
+GRUB_THEME=/usr/share/grub/themes/uwubuntu/theme.txt

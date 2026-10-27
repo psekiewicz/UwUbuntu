@@ -1,0 +1,4 @@
+#!/bin/sh
+. /etc/os-release
+printf '\n  (=^·ω·^=)  Welcome to %s, pawtner!\n' "$PRETTY_NAME"
+printf '  Try: uwufetch   or   echo hello | uwuify\n\n'

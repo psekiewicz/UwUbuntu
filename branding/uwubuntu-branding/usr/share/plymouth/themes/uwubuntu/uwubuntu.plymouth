@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=UwUbuntu
+Description=Logo with a little trail of paw prints walking along
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/uwubuntu
+ScriptFile=/usr/share/plymouth/themes/uwubuntu/uwubuntu.script

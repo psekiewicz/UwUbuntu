@@ -1,0 +1,27 @@
+# UwUbuntu desktop defaults. Loaded after Ubuntu's 10_ubuntu-settings override,
+# so anything set here wins. Users can still change all of it.
+
+[org.gnome.desktop.background]
+picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-day.png'
+picture-uri-dark='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
+picture-options='zoom'
+primary-color='#1b1030'
+
+[org.gnome.desktop.screensaver]
+picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
+primary-color='#1b1030'
+
+[org.gnome.desktop.interface]
+color-scheme='prefer-dark'
+accent-color='pink'
+gtk-theme='Yaru-magenta-dark'
+icon-theme='Yaru-magenta'
+
+[org.gnome.shell]
+favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Ptyxis.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
+
+[org.gnome.shell.extensions.dash-to-dock]
+dock-position='BOTTOM'
+extend-height=false
+dash-max-icon-size=48
+transparency-mode='DYNAMIC'

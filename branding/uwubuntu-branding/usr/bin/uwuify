@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# uwuify: twanswate text into uwu-speak.
+#   uwuify hello world
+#   fortune | uwuify
+set -euo pipefail
+
+faces='(=^·ω·^=)|UwU|OwO|>w<|^w^|:3|x3|nya~|*nuzzles*|(◕ᴥ◕)'
+
+if (( $# )); then printf '%s\n' "$*"; else cat; fi |
+  sed -E \
+    -e 's/ove/uv/g' \
+    -e 's/[rl]/w/g' -e 's/[RL]/W/g' \
+    -e 's/n([aeiou])/ny\1/g' -e 's/N([aeiou])/Ny\1/g' -e 's/N([AEIOU])/NY\1/g' \
+    -e 's/th([aeiou])/d\1/g' |
+  awk -v seed="$RANDOM" -v faces="$faces" '
+    BEGIN { srand(seed); n = split(faces, f, "|") }
+    length($0) > 0 && rand() < 0.6 { print $0 " " f[int(rand() * n) + 1]; next }
+    { print }'

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="3840" height="2160">
+  <!-- UwUbuntu placeholder wallpaper (light): cotton-candy sky with a paw print trail -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe3f1"/>
+      <stop offset="0.5" stop-color="#f3d1ff"/>
+      <stop offset="1" stop-color="#cdb8ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.72" cy="0.3" r="0.55">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+    <g id="p">
+      <path d="M0,-2 C20,-2 40,22 38,38 C36,54 20,54 0,48 C-20,54 -36,54 -38,38 C-40,22 -20,-2 0,-2Z"/>
+      <ellipse cx="-40" cy="-14" rx="11" ry="15" transform="rotate(-20 -40 -14)"/>
+      <ellipse cx="-15" cy="-38" rx="12" ry="16" transform="rotate(-6 -15 -38)"/>
+      <ellipse cx="15" cy="-38" rx="12" ry="16" transform="rotate(6 15 -38)"/>
+      <ellipse cx="40" cy="-14" rx="11" ry="15" transform="rotate(20 40 -14)"/>
+    </g>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+
+  <!-- fluffy clouds -->
+  <g filter="url(#soft)" fill="#ffffff">
+    <ellipse cx="320" cy="220" rx="220" ry="70" opacity="0.6"/>
+    <ellipse cx="1500" cy="160" rx="260" ry="80" opacity="0.55"/>
+    <ellipse cx="1650" cy="900" rx="240" ry="70" opacity="0.4"/>
+    <ellipse cx="520" cy="960" rx="200" ry="60" opacity="0.45"/>
+  </g>
+
+  <!-- sparkles -->
+  <g fill="#ffffff">
+    <path d="M0,-14 L3,-3 L14,0 L3,3 L0,14 L-3,3 L-14,0 L-3,-3Z" transform="translate(1180 160)" opacity="0.9"/>
+    <path d="M0,-14 L3,-3 L14,0 L3,3 L0,14 L-3,3 L-14,0 L-3,-3Z" transform="translate(330 420) scale(0.7)" opacity="0.8"/>
+    <path d="M0,-14 L3,-3 L14,0 L3,3 L0,14 L-3,3 L-14,0 L-3,-3Z" transform="translate(1800 640) scale(0.9)" opacity="0.8"/>
+    <path d="M0,-14 L3,-3 L14,0 L3,3 L0,14 L-3,3 L-14,0 L-3,-3Z" transform="translate(760 360) scale(0.5)" opacity="0.7"/>
+    <path d="M0,-14 L3,-3 L14,0 L3,3 L0,14 L-3,3 L-14,0 L-3,-3Z" transform="translate(1420 760) scale(0.6)" opacity="0.7"/>
+  </g>
+
+  <!-- paw print trail -->
+  <g fill="#8a3fb8">
+    <use href="#p" transform="translate(163.5 979) rotate(65) scale(0.55)" opacity="0.03"/>
+    <use href="#p" transform="translate(272.5 857) rotate(65) scale(0.55)" opacity="0.04"/>
+    <use href="#p" transform="translate(435.5 851) rotate(65) scale(0.55)" opacity="0.05"/>
+    <use href="#p" transform="translate(544.5 729) rotate(65) scale(0.55)" opacity="0.06"/>
+    <use href="#p" transform="translate(707.5 723) rotate(65) scale(0.55)" opacity="0.07"/>
+    <use href="#p" transform="translate(816.5 601) rotate(65) scale(0.55)" opacity="0.08"/>
+    <use href="#p" transform="translate(979.5 595) rotate(65) scale(0.55)" opacity="0.09"/>
+    <use href="#p" transform="translate(1088.5 473) rotate(65) scale(0.55)" opacity="0.1"/>
+    <use href="#p" transform="translate(1251.5 467) rotate(65) scale(0.55)" opacity="0.11"/>
+    <use href="#p" transform="translate(1360.5 345) rotate(65) scale(0.55)" opacity="0.12"/>
+    <use href="#p" transform="translate(1523.5 339) rotate(65) scale(0.55)" opacity="0.14"/>
+    <use href="#p" transform="translate(1632.5 217) rotate(65) scale(0.55)" opacity="0.17"/>
+  </g>
+</svg>

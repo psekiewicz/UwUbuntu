@@ -1,0 +1,30 @@
+# Boot menu of the @DISTRO_NAME@ live ISO
+set default=0
+set timeout=10
+
+insmod all_video
+insmod gfxterm
+insmod png
+loadfont unicode
+set gfxmode=auto
+terminal_output gfxterm
+set theme=/boot/grub/themes/uwubuntu/theme.txt
+export theme
+
+menuentry "Try or install @DISTRO_NAME@" --class uwubuntu {
+    linux /casper/vmlinuz boot=casper quiet splash ---
+    initrd /casper/initrd
+}
+menuentry "@DISTRO_NAME@ (safe graphics)" --class uwubuntu {
+    linux /casper/vmlinuz boot=casper nomodeset quiet splash ---
+    initrd /casper/initrd
+}
+menuentry "@DISTRO_NAME@ (copy to RAM, then boot)" --class uwubuntu {
+    linux /casper/vmlinuz boot=casper toram quiet splash ---
+    initrd /casper/initrd
+}
+if [ "$grub_platform" = "efi" ]; then
+    menuentry "UEFI firmware settings" {
+        fwsetup
+    }
+fi
