@@ -19,8 +19,10 @@ while (i < PAWS) {
 // The screen often changes resolution once the graphics driver loads, so
 // everything is positioned here and re-laid out whenever the size changes.
 fun layout() {
-    global.cx = Window.GetX() + Window.GetWidth() / 2;
-    global.cy = Window.GetY() + Window.GetHeight() / 2;
+    // Window.GetX()/GetY() go stale after a resolution change on some GPUs
+    // (seen in VirtualBox), which pushed everything off-centre.
+    global.cx = Window.GetWidth() / 2;
+    global.cy = Window.GetHeight() / 2;
     global.last_w = Window.GetWidth();
     global.last_h = Window.GetHeight();
 
@@ -90,6 +92,6 @@ fun message_callback(text) {
     img = Image.Text(text, 0.94, 0.75, 0.62);
     global.message.sprite.SetImage(img);
     global.message.sprite.SetX(global.cx - img.GetWidth() / 2);
-    global.message.sprite.SetY(Window.GetY() + Window.GetHeight() - 60);
+    global.message.sprite.SetY(Window.GetHeight() - 60);
 }
 Plymouth.SetMessageFunction(message_callback);

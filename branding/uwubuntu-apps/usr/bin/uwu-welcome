@@ -42,11 +42,15 @@ class WelcomeWindow(Adw.ApplicationWindow):
         self.set_default_size(820, 620)
         self.interface = ui.settings_for("org.gnome.desktop.interface")
 
-        self.carousel = Adw.Carousel(hexpand=True, vexpand=True, allow_long_swipes=False)
-        for page in (self._hello_page(), self._look_page(), self._desktop_page(),
-                     self._apps_page(), self._done_page()):
-            self.carousel.append(page)
-        self.carousel.connect("page-changed", self._on_page_changed)
+        # A Gtk.Stack rather than Adw.Carousel: the carousel let the next page
+        # peek in at the edge of the window.
+        self.stack = Gtk.Stack(hexpand=True, vexpand=True, transition_duration=300,
+                               transition_type=Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.pages = [self._hello_page(), self._look_page(), self._desktop_page(),
+                      self._apps_page(), self._done_page()]
+        for page in self.pages:
+            self.stack.add_child(page)
+        self.index = 0
 
         self.back = Gtk.Button(icon_name="go-previous-symbolic", tooltip_text="Back")
         self.back.add_css_class("circular")
@@ -56,32 +60,34 @@ class WelcomeWindow(Adw.ApplicationWindow):
         self.next.add_css_class("suggested-action")
         self.next.connect("clicked", lambda *_: self._go(1))
 
-        dots = Adw.CarouselIndicatorDots(carousel=self.carousel, hexpand=True)
+        self.dots = Gtk.Label(hexpand=True)
+        self.dots.add_css_class("dim-label")
         nav = Gtk.Box(spacing=12, margin_start=18, margin_end=18, margin_bottom=18)
         nav.append(self.back)
-        nav.append(dots)
+        nav.append(self.dots)
         nav.append(self.next)
 
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        body.append(self.carousel)
+        body.append(self.stack)
         body.append(nav)
 
         toolbar = Adw.ToolbarView(content=body)
         toolbar.add_top_bar(Adw.HeaderBar(show_title=False))
         self.toasts = Adw.ToastOverlay(child=toolbar)
         self.set_content(self.toasts)
-        self._on_page_changed(self.carousel, 0)
+        self._show_page(0)
         self.connect("close-request", self._on_close)
 
     # --- navigation ------------------------------------------------------------
     def _go(self, delta):
-        index = int(round(self.carousel.get_position())) + delta
-        index = max(0, min(index, self.carousel.get_n_pages() - 1))
-        self.carousel.scroll_to(self.carousel.get_nth_page(index), True)
+        self._show_page(max(0, min(self.index + delta, len(self.pages) - 1)))
 
-    def _on_page_changed(self, carousel, index):
+    def _show_page(self, index):
+        self.index = index
+        self.stack.set_visible_child(self.pages[index])
         self.back.set_sensitive(index > 0)
-        self.next.set_sensitive(index < carousel.get_n_pages() - 1)
+        self.next.set_sensitive(index < len(self.pages) - 1)
+        self.dots.set_label("  ".join("●" if i == index else "○" for i in range(len(self.pages))))
 
     def _on_close(self, *_):
         ui.set_welcome_shows_at_login(self.show_at_login.get_active())

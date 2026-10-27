@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Paw Updater: system + Flatpak updates in one click (replaces Update Manager).
 
-Checking reads apt's package lists (refreshed daily by the system), so it needs
-no password. Updating runs /usr/lib/uwubuntu/paw-updater-helper through pkexec,
-which shows the normal desktop password prompt. Flatpak apps use flatpak.
+Opening the app reads apt's package lists as they are (the system refreshes them
+daily), so it needs no password; the Check button refreshes them first. That
+and updating run /usr/lib/uwubuntu/paw-updater-helper through pkexec, which shows
+the normal desktop password prompt. Flatpak apps use flatpak.
 """
 
+import glob
 import os
 import sys
 
@@ -38,7 +40,7 @@ class UpdaterWindow(Adw.ApplicationWindow):
 
         self.check_button = Gtk.Button(label="Check for updates")
         self.check_button.add_css_class("pill")
-        self.check_button.connect("clicked", lambda *_: self.check())
+        self.check_button.connect("clicked", lambda *_: self.check(refresh=True))
         self.update_button = Gtk.Button(label="Update everything", sensitive=False)
         self.update_button.add_css_class("pill")
         self.update_button.add_css_class("suggested-action")
@@ -79,10 +81,11 @@ class UpdaterWindow(Adw.ApplicationWindow):
         if message:
             self.status.set_description(message)
 
-    def check(self):
+    def check(self, refresh=False):
         self.mode = "check"
         self._busy(True, "Sniffing around for updates...")
-        self.runner.run([
+        commands = [["pkexec", HELPER, "refresh"]] if refresh else []
+        self.runner.run(commands + [
             ["apt", "list", "--upgradable"],
             ["flatpak", "remote-ls", "--updates", "--columns=application"],
         ])
@@ -101,7 +104,11 @@ class UpdaterWindow(Adw.ApplicationWindow):
         if self.mode == "check":
             system = count_apt_updates(by_cmd.get(("apt", "list"), (0, ""))[1])
             apps = count_flatpak_updates(by_cmd.get(("flatpak", "remote-ls"), (0, ""))[1])
-            if system + apps == 0:
+            if system + apps == 0 and not glob.glob("/var/lib/apt/lists/*_Packages"):
+                # fresh system: apt has never downloaded its package lists
+                self.status.set_title("Haven't sniffed around yet")
+                self.status.set_description("Press Check for updates to look for new versions.")
+            elif system + apps == 0:
                 self.status.set_title("All up to date (^w^)")
                 self.status.set_description("Nothing to do. Your den is spotless.")
             else:
