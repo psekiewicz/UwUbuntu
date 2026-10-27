@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""UwU Welcome: the first-run tour of UwUbuntu.
+
+  uwu-welcome              open the tour
+  uwu-welcome --autostart  open it only if the user hasn't dismissed it yet
+"""
+
+import subprocess
+import sys
+
+sys.path.insert(0, "/usr/lib/uwubuntu")
+import uwubuntu_ui as ui  # noqa: E402
+from uwubuntu_ui import Adw, Gio, Gtk  # noqa: E402
+
+APP_ID = "org.uwubuntu.Welcome"
+
+# (Flathub ID, name, blurb)
+FLATHUB_APPS = [
+    ("com.discordapp.Discord", "Discord", "Chat with your pack"),
+    ("org.telegram.desktop", "Telegram", "Sticker heaven"),
+    ("com.valvesoftware.Steam", "Steam", "Games, games, games"),
+    ("com.obsproject.Studio", "OBS Studio", "Stream and record"),
+    ("org.blender.Blender", "Blender", "3D art, avatars and fursuit designs"),
+    ("com.spotify.Client", "Spotify", "Music"),
+    ("org.godotengine.Godot", "Godot", "Make your own games"),
+    ("com.vscodium.codium", "VSCodium", "Code editor"),
+]
+
+
+def installed_flatpaks():
+    try:
+        out = subprocess.run(["flatpak", "list", "--app", "--columns=application"],
+                             capture_output=True, text=True, timeout=20).stdout
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    return {line.strip() for line in out.splitlines() if line.strip()}
+
+
+class WelcomeWindow(Adw.ApplicationWindow):
+    def __init__(self, app):
+        super().__init__(application=app, title="Welcome to UwUbuntu")
+        self.set_default_size(820, 620)
+        self.interface = ui.settings_for("org.gnome.desktop.interface")
+
+        self.carousel = Adw.Carousel(hexpand=True, vexpand=True, allow_long_swipes=False)
+        for page in (self._hello_page(), self._look_page(), self._desktop_page(),
+                     self._apps_page(), self._done_page()):
+            self.carousel.append(page)
+        self.carousel.connect("page-changed", self._on_page_changed)
+
+        self.back = Gtk.Button(icon_name="go-previous-symbolic", tooltip_text="Back")
+        self.back.add_css_class("circular")
+        self.back.connect("clicked", lambda *_: self._go(-1))
+        self.next = Gtk.Button(icon_name="go-next-symbolic", tooltip_text="Next")
+        self.next.add_css_class("circular")
+        self.next.add_css_class("suggested-action")
+        self.next.connect("clicked", lambda *_: self._go(1))
+
+        dots = Adw.CarouselIndicatorDots(carousel=self.carousel, hexpand=True)
+        nav = Gtk.Box(spacing=12, margin_start=18, margin_end=18, margin_bottom=18)
+        nav.append(self.back)
+        nav.append(dots)
+        nav.append(self.next)
+
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        body.append(self.carousel)
+        body.append(nav)
+
+        toolbar = Adw.ToolbarView(content=body)
+        toolbar.add_top_bar(Adw.HeaderBar(show_title=False))
+        self.toasts = Adw.ToastOverlay(child=toolbar)
+        self.set_content(self.toasts)
+        self._on_page_changed(self.carousel, 0)
+        self.connect("close-request", self._on_close)
+
+    # --- navigation ------------------------------------------------------------
+    def _go(self, delta):
+        index = int(round(self.carousel.get_position())) + delta
+        index = max(0, min(index, self.carousel.get_n_pages() - 1))
+        self.carousel.scroll_to(self.carousel.get_nth_page(index), True)
+
+    def _on_page_changed(self, carousel, index):
+        self.back.set_sensitive(index > 0)
+        self.next.set_sensitive(index < carousel.get_n_pages() - 1)
+
+    def _on_close(self, *_):
+        ui.set_welcome_shows_at_login(self.show_at_login.get_active())
+        return False
+
+    # --- pages -----------------------------------------------------------------
+    def _hello_page(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                      halign=Gtk.Align.CENTER)
+        if ui.is_live_session():
+            install = Gtk.Button(label="Install UwUbuntu")
+            install.add_css_class("pill")
+            install.add_css_class("suggested-action")
+            install.connect("clicked", lambda *_: ui.launch_installer())
+            box.append(install)
+            note = Gtk.Label(label="You're in the live session. Nothing is saved until you install.")
+            note.add_css_class("dim-label")
+            box.append(note)
+        name = ui.os_release().get("PRETTY_NAME", "UwUbuntu")
+        return ui.status_page(
+            "Hewwo, pawtner! (=^·ω·^=)",
+            f"Welcome to {name}. Let's get your new den set up: it only takes a minute.",
+            paintable=ui.logo_paintable(), icon_name="org.uwubuntu.Welcome", child=box)
+
+    def _look_page(self):
+        group = Adw.PreferencesGroup()
+        if self.interface:
+            dark = Adw.SwitchRow(title="Dark mode", subtitle="Cosy den, warm browns")
+            dark.set_active(self.interface.get_string("color-scheme") == "prefer-dark")
+            dark.connect("notify::active", lambda row, _: self.interface.set_string(
+                "color-scheme", "prefer-dark" if row.get_active() else "default"))
+            group.add(dark)
+            if self.interface.props.settings_schema.has_key("accent-color"):
+                accent = Adw.ComboRow(title="Accent colour",
+                                      model=Gtk.StringList.new([a.capitalize() for a in ui.ACCENTS]))
+                current = self.interface.get_string("accent-color")
+                accent.set_selected(ui.ACCENTS.index(current) if current in ui.ACCENTS else 4)
+                accent.connect("notify::selected", lambda row, _: self.interface.set_string(
+                    "accent-color", ui.ACCENTS[row.get_selected()]))
+                group.add(accent)
+        more = Adw.ActionRow(title="More options", subtitle="Wallpapers, animations and more",
+                             activatable=True)
+        more.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
+        more.connect("activated", lambda *_: subprocess.Popen(["uwu-settings"]))
+        group.add(more)
+        clamp = Adw.Clamp(maximum_size=480, child=group)
+        return ui.status_page("Pick your look", "You can change all of this later in UwU Settings.",
+                              icon_name="applications-graphics-symbolic", child=clamp)
+
+    def _desktop_page(self):
+        return ui.status_page(
+            "Two dens to choose from",
+            "GNOME is the comfy default, now with wobbly windows and magic-lamp animations.\n\n"
+            "Hyprland is a bouncy tiling desktop for keyboard lovers. Pick it from the gear "
+            "button on the login screen. Super+Return opens kitty, Super+D opens apps.",
+            icon_name="video-display-symbolic")
+
+    def _apps_page(self):
+        installed = installed_flatpaks()
+        self.app_checks = []
+        group = Adw.PreferencesGroup()
+        for app_id, name, blurb in FLATHUB_APPS:
+            row = Adw.ActionRow(title=name, subtitle=blurb)
+            check = Gtk.CheckButton(valign=Gtk.Align.CENTER)
+            if app_id in installed:
+                check.set_active(True)
+                check.set_sensitive(False)
+                row.set_subtitle(blurb + " (installed)")
+            row.add_prefix(check)
+            row.set_activatable_widget(check)
+            group.add(row)
+            self.app_checks.append((app_id, check))
+
+        self.install_button = Gtk.Button(label="Install selected apps", halign=Gtk.Align.CENTER,
+                                         margin_top=12)
+        self.install_button.add_css_class("pill")
+        self.install_button.add_css_class("suggested-action")
+        self.install_button.connect("clicked", self._install_apps)
+        self.spinner = Adw.Spinner(visible=False, halign=Gtk.Align.CENTER)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        box.append(group)
+        box.append(self.install_button)
+        box.append(self.spinner)
+        if ui.is_live_session():
+            note = Gtk.Label(label="Apps installed in the live session vanish when you reboot.",
+                             wrap=True)
+            note.add_css_class("dim-label")
+            box.append(note)
+        self.runner = ui.CommandRunner(lambda line: None, self._apps_installed)
+        clamp = Adw.Clamp(maximum_size=520, child=box)
+        return ui.status_page("Grab some apps",
+                              "Straight from Flathub. GNOME Software has thousands more.",
+                              icon_name="system-software-install-symbolic", child=clamp)
+
+    def _install_apps(self, *_):
+        wanted = [app_id for app_id, check in self.app_checks
+                  if check.get_active() and check.get_sensitive()]
+        if not wanted:
+            self.toasts.add_toast(Adw.Toast(title="Tick some apps first :3"))
+            return
+        self.install_button.set_sensitive(False)
+        self.spinner.set_visible(True)
+        self.runner.run([["flatpak", "install", "--system", "-y", "--noninteractive",
+                          "flathub", *wanted]])
+
+    def _apps_installed(self, results):
+        self.spinner.set_visible(False)
+        self.install_button.set_sensitive(True)
+        ok = all(status == 0 for _argv, status, _out in results)
+        if ok:
+            for _app_id, check in self.app_checks:
+                if check.get_active():
+                    check.set_sensitive(False)
+        self.toasts.add_toast(Adw.Toast(
+            title="All installed! Find them in your apps (^w^)" if ok
+            else "Something went wrong installing. Try GNOME Software?"))
+
+    def _done_page(self):
+        self.show_at_login = Gtk.Switch(active=False, valign=Gtk.Align.CENTER)
+        row = Adw.ActionRow(title="Show this tour at login")
+        row.add_suffix(self.show_at_login)
+        row.set_activatable_widget(self.show_at_login)
+        group = Adw.PreferencesGroup()
+        group.add(row)
+
+        finish = Gtk.Button(label="Let's go!", halign=Gtk.Align.CENTER, margin_top=18)
+        finish.add_css_class("pill")
+        finish.add_css_class("suggested-action")
+        finish.connect("clicked", lambda *_: self.close())
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.append(group)
+        box.append(finish)
+        clamp = Adw.Clamp(maximum_size=420, child=box)
+        return ui.status_page("All set! Have a pawsome day",
+                              "Updates come from Paw Updater, tweaks live in UwU Settings.",
+                              icon_name="emblem-favorite-symbolic", child=clamp)
+
+
+class WelcomeApp(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+
+    def do_activate(self):
+        window = self.get_active_window() or WelcomeWindow(self)
+        window.present()
+
+
+def main():
+    if "--autostart" in sys.argv:
+        if not ui.welcome_shows_at_login():
+            return 0
+        sys.argv.remove("--autostart")
+    return WelcomeApp().run(sys.argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

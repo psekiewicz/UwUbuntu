@@ -1,0 +1,9 @@
+# GNOME Shell extensions downloaded from extensions.gnome.org at build time and
+# installed system-wide. The newest release compatible with the image's GNOME
+# version is used; if there is none yet, the extension is skipped.
+# Enable/disable defaults live in branding/.../90_uwubuntu.gschema.override.
+
+burn-my-windows@schneegans.github.com                 # fiery/glitchy window open + close effects
+compiz-windows-effect@hermes83.github.com             # wobbly windows
+compiz-alike-magic-lamp-effect@hermes83.github.com    # magic lamp minimise
+blur-my-shell@aunetx                                  # frosted-glass panel, overview and dock

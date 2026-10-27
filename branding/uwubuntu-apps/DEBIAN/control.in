@@ -1,0 +1,12 @@
+Package: uwubuntu-apps
+Version: @PKG_VERSION@
+Architecture: all
+Maintainer: UwUbuntu Developers <uwubuntu@example.org>
+Section: misc
+Priority: optional
+Depends: python3, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1, flatpak, packagekit-tools, uwubuntu-branding
+Homepage: @DISTRO_HOME_URL@
+Description: @DISTRO_NAME@'s own furry apps
+ UwU Welcome (first-run tour and Flathub app picker), UwU Settings (look,
+ animations, terminal and startup tweaks) and Paw Updater (system and
+ Flatpak updates in one click).

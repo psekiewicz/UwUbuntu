@@ -1,0 +1,10 @@
+# UwUbuntu notifications (Hyprland session)
+font=Ubuntu Sans 11
+background-color=#2b1610ee
+text-color=#f7ede8
+border-color=#e14908
+border-size=2
+border-radius=14
+padding=12
+margin=12
+default-timeout=6000

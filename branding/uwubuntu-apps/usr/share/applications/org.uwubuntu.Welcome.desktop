@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=UwU Welcome
+Comment=Get your new den set up
+Exec=uwu-welcome
+Icon=org.uwubuntu.Welcome
+Terminal=false
+Categories=GNOME;GTK;Settings;
+Keywords=welcome;tour;first;setup;apps;
+StartupNotify=true

@@ -3,37 +3,54 @@
 Window.SetBackgroundTopColor(0.17, 0.09, 0.06);
 Window.SetBackgroundBottomColor(0.35, 0.16, 0.07);
 
-cx = Window.GetX() + Window.GetWidth() / 2;
-cy = Window.GetY() + Window.GetHeight() / 2;
+PAWS = 6;
+SPACING = 52;
 
 logo.image = Image("logo.png");
 logo.sprite = Sprite(logo.image);
-logo.sprite.SetPosition(cx - logo.image.GetWidth() / 2, cy - logo.image.GetHeight() / 2 - 60, 10);
-
-PAWS = 6;
-SPACING = 52;
 paw_image = Image("paw.png");
 i = 0;
 while (i < PAWS) {
     paw[i] = Sprite(paw_image);
-    // alternate up/down like left and right feet
-    paw_x = cx - (PAWS - 1) * SPACING / 2 + i * SPACING - paw_image.GetWidth() / 2;
-    paw[i].SetPosition(paw_x, cy + 100 + (i % 2) * 16, 10);
     paw[i].SetOpacity(0.12);
     i++;
 }
 
+// The screen often changes resolution once the graphics driver loads, so
+// everything is positioned here and re-laid out whenever the size changes.
+fun layout() {
+    global.cx = Window.GetX() + Window.GetWidth() / 2;
+    global.cy = Window.GetY() + Window.GetHeight() / 2;
+    global.last_w = Window.GetWidth();
+    global.last_h = Window.GetHeight();
+
+    logo_x = global.cx - global.logo.image.GetWidth() / 2;
+    logo_y = global.cy - global.logo.image.GetHeight() / 2 - 60;
+    global.logo.sprite.SetPosition(logo_x, logo_y, 10);
+    n = 0;
+    while (n < global.PAWS) {
+        x = global.cx - (global.PAWS - 1) * global.SPACING / 2 + n * global.SPACING - global.paw_image.GetWidth() / 2;
+        // alternate up/down like left and right feet
+        global.paw[n].SetPosition(x, global.cy + 100 + (n % 2) * 16, 10);
+        n++;
+    }
+}
+layout();
+
 global.tick = 0;
 fun refresh_callback() {
+    if (Window.GetWidth() != global.last_w || Window.GetHeight() != global.last_h) {
+        layout();
+    }
     global.tick = global.tick + 1;
     // one new step every ~0.2 s, then a short pause before the walk restarts
-    steps = Math.Int(global.tick / 10) % (PAWS + 3);
+    steps = Math.Int(global.tick / 10) % (global.PAWS + 3);
     j = 0;
-    while (j < PAWS) {
+    while (j < global.PAWS) {
         if (j < steps) {
-            paw[j].SetOpacity(1);
+            global.paw[j].SetOpacity(1);
         } else {
-            paw[j].SetOpacity(0.12);
+            global.paw[j].SetOpacity(0.12);
         }
         j++;
     }
@@ -53,8 +70,8 @@ fun display_password_callback(prompt_text, bullets) {
     }
     img = Image.Text(line, 0.97, 0.91, 0.87);
     global.prompt.sprite.SetImage(img);
-    global.prompt.sprite.SetX(cx - img.GetWidth() / 2);
-    global.prompt.sprite.SetY(cy + 170);
+    global.prompt.sprite.SetX(global.cx - img.GetWidth() / 2);
+    global.prompt.sprite.SetY(global.cy + 170);
     global.prompt.sprite.SetOpacity(1);
 }
 
@@ -72,7 +89,7 @@ message.sprite.SetZ(20);
 fun message_callback(text) {
     img = Image.Text(text, 0.94, 0.75, 0.62);
     global.message.sprite.SetImage(img);
-    global.message.sprite.SetX(cx - img.GetWidth() / 2);
+    global.message.sprite.SetX(global.cx - img.GetWidth() / 2);
     global.message.sprite.SetY(Window.GetY() + Window.GetHeight() - 60);
 }
 Plymouth.SetMessageFunction(message_callback);

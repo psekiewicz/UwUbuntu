@@ -4,6 +4,7 @@ set timeout=10
 
 insmod all_video
 insmod gfxterm
+insmod gfxmenu
 insmod png
 loadfont unicode
 set gfxmode=auto

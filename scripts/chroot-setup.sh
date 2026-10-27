@@ -96,10 +96,39 @@ mapfile -t extras < <(read_list "$IN/packages.list")
 install_available "${extras[@]}"
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo \
   || warn "couldn't add Flathub; users can add it later"
+if [[ -x /usr/bin/kitty ]]; then
+  update-alternatives --set x-terminal-emulator /usr/bin/kitty \
+    || warn "couldn't make kitty the x-terminal-emulator"
+fi
 
-log "Installer + UwUbuntu branding"
+log "Animation extensions from extensions.gnome.org"
+shell_major="$(dpkg-query -W -f='${Version}' gnome-shell | cut -d. -f1)"
+mapfile -t extensions < <(read_list "$IN/gnome-extensions.list")
+for uuid in "${extensions[@]}"; do
+  info="$(curl -fsSL "https://extensions.gnome.org/extension-info/?uuid=$uuid&shell_version=$shell_major")" || {
+    warn "skipping extension '$uuid' (nothing compatible with GNOME $shell_major)"; continue; }
+  url="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["download_url"])' <<<"$info")"
+  dest="/usr/share/gnome-shell/extensions/$uuid"
+  rm -rf "$dest"
+  mkdir -p "$dest"
+  curl -fsSL "https://extensions.gnome.org$url" -o /tmp/extension.zip
+  unzip -q -o /tmp/extension.zip -d "$dest"
+  rm -f /tmp/extension.zip
+  # system-wide extensions need their settings schemas in the global dir
+  if compgen -G "$dest/schemas/*.gschema.xml" >/dev/null; then
+    cp "$dest"/schemas/*.gschema.xml /usr/share/glib-2.0/schemas/
+  fi
+  chmod -R u=rwX,go=rX "$dest"
+  log "  installed $uuid"
+done
+glib-compile-schemas /usr/share/glib-2.0/schemas
+
+log "Installer + UwUbuntu branding and apps"
 fix_dns
-"${APT[@]}" install calamares "$IN"/uwubuntu-branding_*.deb
+"${APT[@]}" install calamares "$IN"/uwubuntu-*_all.deb
+# Fail the build (rather than ship broken apps) if GTK/libadwaita won't load
+python3 -c 'import sys; sys.path.insert(0, "/usr/lib/uwubuntu"); import uwubuntu_ui' \
+  && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater
 # The installed system needs exactly one of these, depending on BIOS vs UEFI;
 # post-install.sh picks the right one offline.
 mkdir -p /var/cache/uwubuntu/bootloader
@@ -121,10 +150,23 @@ locale-gen
 echo 'LANG=en_US.UTF-8' > /etc/default/locale
 
 log "Removing unwanted packages"
+# Never let a removal drag these out with it (they pull in the whole desktop,
+# and losing them would make autoremove delete everything they brought in).
+PROTECTED='^Remv (ubuntu-minimal|ubuntu-standard|ubuntu-desktop-minimal|ubuntu-desktop|gnome-shell|gdm3|uwubuntu-[a-z]+) '
 mapfile -t unwanted < <(read_list "$IN/packages-remove.list")
 for pkg in "${unwanted[@]}"; do
-  if dpkg -s "$pkg" >/dev/null 2>&1; then "${APT[@]}" purge "$pkg"; fi
+  dpkg -s "$pkg" >/dev/null 2>&1 || continue
+  if apt-get -s purge "$pkg" | grep -qE "$PROTECTED"; then
+    warn "keeping '$pkg': removing it would also remove the desktop"
+    continue
+  fi
+  "${APT[@]}" purge "$pkg"
 done
+# Keep snap from sneaking back in through a dependency (same as Linux Mint).
+if ! dpkg -s snapd >/dev/null 2>&1; then
+  rm -rf /snap /var/snap /var/lib/snapd /var/cache/snapd
+  printf 'Package: snapd\nPin: release a=*\nPin-Priority: -10\n' > /etc/apt/preferences.d/no-snap
+fi
 
 log "Regenerating initramfs (casper + boot splash)"
 update-initramfs -u -k all

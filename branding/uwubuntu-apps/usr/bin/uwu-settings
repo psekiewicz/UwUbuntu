@@ -1,0 +1,226 @@
+#!/usr/bin/env python3
+"""UwU Settings: UwUbuntu's own tweaks (look, animations, terminal, startup)."""
+
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "/usr/lib/uwubuntu")
+import uwubuntu_ui as ui  # noqa: E402
+from uwubuntu_ui import Adw, Gio, GLib, Gtk  # noqa: E402
+
+APP_ID = "org.uwubuntu.Settings"
+BASHRC = Path.home() / ".bashrc"
+FETCH_BEGIN = "# >>> uwubuntu: uwufetch greeting >>>"
+FETCH_END = "# <<< uwubuntu: uwufetch greeting <<<"
+FETCH_BLOCK = (f"{FETCH_BEGIN}\n"
+               "if [ -n \"$PS1\" ] && command -v uwufetch >/dev/null; then uwufetch; fi\n"
+               f"{FETCH_END}\n")
+AUTO_WALLPAPER = "Automatic (light + dark)"
+
+
+def fetch_greeting_enabled():
+    try:
+        return FETCH_BEGIN in BASHRC.read_text(encoding="utf-8")
+    except OSError:
+        return False
+
+
+def set_fetch_greeting(enabled):
+    try:
+        text = BASHRC.read_text(encoding="utf-8")
+    except OSError:
+        text = ""
+    if FETCH_BEGIN in text:
+        start = text.index(FETCH_BEGIN)
+        end = text.find(FETCH_END, start)
+        end = len(text) if end == -1 else end + len(FETCH_END) + 1
+        text = text[:start] + text[end:]
+    if enabled:
+        text = text.rstrip("\n") + "\n\n" + FETCH_BLOCK
+    BASHRC.write_text(text, encoding="utf-8")
+
+
+class SettingsWindow(Adw.ApplicationWindow):
+    def __init__(self, app):
+        super().__init__(application=app, title="UwU Settings")
+        self.set_default_size(640, 720)
+        self.interface = ui.settings_for("org.gnome.desktop.interface")
+        self.background = ui.settings_for("org.gnome.desktop.background")
+        self.shell = ui.settings_for("org.gnome.shell", "enabled-extensions")
+
+        page = Adw.PreferencesPage()
+        page.add(self._look_group())
+        page.add(self._animation_group())
+        page.add(self._terminal_group())
+        page.add(self._startup_group())
+
+        about = Gtk.Button(icon_name="help-about-symbolic", tooltip_text="About UwUbuntu")
+        about.connect("clicked", self._show_about)
+        header = Adw.HeaderBar()
+        header.pack_end(about)
+
+        toolbar = Adw.ToolbarView(content=page)
+        toolbar.add_top_bar(header)
+        self.toasts = Adw.ToastOverlay(child=toolbar)
+        self.set_content(self.toasts)
+
+    # --- Look ------------------------------------------------------------------
+    def _look_group(self):
+        group = Adw.PreferencesGroup(title="Look", description="Colours and wallpaper")
+        if self.interface:
+            dark = Adw.SwitchRow(title="Dark mode")
+            dark.set_active(self.interface.get_string("color-scheme") == "prefer-dark")
+            dark.connect("notify::active", lambda row, _: self.interface.set_string(
+                "color-scheme", "prefer-dark" if row.get_active() else "default"))
+            group.add(dark)
+
+            if self.interface.props.settings_schema.has_key("accent-color"):
+                accent = Adw.ComboRow(title="Accent colour",
+                                      model=Gtk.StringList.new([a.capitalize() for a in ui.ACCENTS]))
+                current = self.interface.get_string("accent-color")
+                accent.set_selected(ui.ACCENTS.index(current) if current in ui.ACCENTS else 4)
+                accent.connect("notify::selected", lambda row, _: self.interface.set_string(
+                    "accent-color", ui.ACCENTS[row.get_selected()]))
+                group.add(accent)
+
+        if self.background:
+            self.wallpaper_choices = [(AUTO_WALLPAPER, None)] + ui.wallpapers()
+            wall = Adw.ComboRow(title="Wallpaper",
+                                subtitle="Automatic uses the light one in light mode",
+                                model=Gtk.StringList.new([label for label, _ in self.wallpaper_choices]))
+            wall.set_selected(self._current_wallpaper_index())
+            wall.connect("notify::selected", self._on_wallpaper)
+            group.add(wall)
+        return group
+
+    def _current_wallpaper_index(self):
+        light = self.background.get_string("picture-uri")
+        dark = self.background.get_string("picture-uri-dark")
+        if light != dark:
+            return 0
+        for i, (_label, path) in enumerate(self.wallpaper_choices):
+            if path and GLib.filename_to_uri(path) == light:
+                return i
+        return 0
+
+    def _on_wallpaper(self, row, _pspec):
+        _label, path = self.wallpaper_choices[row.get_selected()]
+        if path is None:
+            self.background.reset("picture-uri")
+            self.background.reset("picture-uri-dark")
+        else:
+            uri = GLib.filename_to_uri(path)
+            self.background.set_string("picture-uri", uri)
+            self.background.set_string("picture-uri-dark", uri)
+
+    # --- Animations ------------------------------------------------------------
+    def _animation_group(self):
+        group = Adw.PreferencesGroup(title="Animations",
+                                     description="Extra wiggle for the GNOME desktop")
+        if self.interface and self.interface.props.settings_schema.has_key("enable-animations"):
+            master = Adw.SwitchRow(title="Animations", subtitle="Turn off for a calmer, faster desktop")
+            self.interface.bind("enable-animations", master, "active", Gio.SettingsBindFlags.DEFAULT)
+            group.add(master)
+
+        if not self.shell:
+            return group
+        for uuid, title, blurb in ui.ANIMATION_EXTENSIONS:
+            if not ui.extension_installed(uuid):
+                continue
+            row = Adw.SwitchRow(title=title, subtitle=blurb)
+            row.set_active(self._extension_enabled(uuid))
+            row.connect("notify::active", self._on_extension_toggled, uuid)
+            prefs = Gtk.Button(icon_name="emblem-system-symbolic", valign=Gtk.Align.CENTER,
+                               tooltip_text=f"{title} settings")
+            prefs.add_css_class("flat")
+            prefs.connect("clicked", lambda _b, u=uuid: self._open_extension_prefs(u))
+            row.add_suffix(prefs)
+            group.add(row)
+        return group
+
+    def _extension_enabled(self, uuid):
+        return (uuid in self.shell.get_strv("enabled-extensions")
+                and uuid not in self.shell.get_strv("disabled-extensions"))
+
+    def _on_extension_toggled(self, row, _pspec, uuid):
+        enabled = [u for u in self.shell.get_strv("enabled-extensions") if u != uuid]
+        disabled = [u for u in self.shell.get_strv("disabled-extensions") if u != uuid]
+        if row.get_active():
+            enabled.append(uuid)
+        else:
+            disabled.append(uuid)
+        self.shell.set_strv("enabled-extensions", enabled)
+        self.shell.set_strv("disabled-extensions", disabled)
+
+    def _open_extension_prefs(self, uuid):
+        try:
+            subprocess.Popen(["gnome-extensions", "prefs", uuid])
+        except OSError:
+            self.toasts.add_toast(Adw.Toast(title="Extension settings need the GNOME session"))
+
+    # --- Terminal ----------------------------------------------------------------
+    def _terminal_group(self):
+        group = Adw.PreferencesGroup(title="Terminal")
+        greet = Adw.SwitchRow(title="Greet me with uwufetch",
+                              subtitle="Show the paw and system info in every new terminal")
+        greet.set_active(fetch_greeting_enabled())
+        greet.connect("notify::active", lambda row, _: set_fetch_greeting(row.get_active()))
+        group.add(greet)
+
+        kitty = Adw.ActionRow(title="kitty theme", subtitle="Edit ~/.config/kitty/kitty.conf",
+                              activatable=True)
+        kitty.add_suffix(Gtk.Image(icon_name="document-edit-symbolic"))
+        kitty.connect("activated", self._edit_kitty_config)
+        group.add(kitty)
+        return group
+
+    def _edit_kitty_config(self, *_):
+        config = Path(GLib.get_user_config_dir()) / "kitty" / "kitty.conf"
+        if not config.exists():
+            # start from the UwUbuntu defaults so nothing changes until edited
+            config.parent.mkdir(parents=True, exist_ok=True)
+            config.write_text(Path("/etc/xdg/kitty/kitty.conf").read_text(encoding="utf-8"),
+                              encoding="utf-8")
+        Gio.AppInfo.launch_default_for_uri(GLib.filename_to_uri(str(config)), None)
+
+    # --- Startup ---------------------------------------------------------------
+    def _startup_group(self):
+        group = Adw.PreferencesGroup(title="Startup")
+        welcome = Adw.SwitchRow(title="Show UwU Welcome at login")
+        welcome.set_active(ui.welcome_shows_at_login())
+        welcome.connect("notify::active",
+                        lambda row, _: ui.set_welcome_shows_at_login(row.get_active()))
+        group.add(welcome)
+
+        tour = Adw.ButtonRow(title="Open UwU Welcome now") if hasattr(Adw, "ButtonRow") \
+            else Adw.ActionRow(title="Open UwU Welcome now", activatable=True)
+        tour.connect("activated", lambda *_: subprocess.Popen(["uwu-welcome"]))
+        group.add(tour)
+        return group
+
+    def _show_about(self, *_):
+        info = ui.os_release()
+        about = Adw.AboutDialog(
+            application_name=info.get("NAME", "UwUbuntu"),
+            application_icon="uwubuntu-logo",
+            version=info.get("VERSION", ""),
+            comments="A fluffy Ubuntu remix (=^·ω·^=)",
+            website=info.get("HOME_URL", ""),
+            issue_url=info.get("BUG_REPORT_URL", ""),
+            license_type=Gtk.License.GPL_3_0,
+        )
+        about.present(self)
+
+
+class SettingsApp(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+
+    def do_activate(self):
+        window = self.get_active_window() or SettingsWindow(self)
+        window.present()
+
+
+if __name__ == "__main__":
+    sys.exit(SettingsApp().run(sys.argv))

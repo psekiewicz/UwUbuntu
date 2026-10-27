@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Paw Updater: system + Flatpak updates in one click (replaces Update Manager).
+
+System packages go through PackageKit (pkcon), so authentication uses the
+normal desktop password prompt; Flatpak apps are updated with flatpak.
+"""
+
+import os
+import sys
+
+sys.path.insert(0, "/usr/lib/uwubuntu")
+import uwubuntu_ui as ui  # noqa: E402
+from uwubuntu_ui import Adw, Gio, Gtk  # noqa: E402
+
+APP_ID = "org.uwubuntu.PawUpdater"
+PKCON_NOTHING_TO_DO = 5  # pkcon's exit code for "no updates"
+
+
+def count_pkcon_updates(output):
+    lines = output.splitlines()
+    if "Results:" not in lines:
+        return 0
+    return sum(1 for line in lines[lines.index("Results:") + 1:] if line.strip())
+
+
+def count_flatpak_updates(output):
+    return sum(1 for line in output.splitlines()
+               if line.strip() and not line.startswith("$"))
+
+
+class UpdaterWindow(Adw.ApplicationWindow):
+    def __init__(self, app):
+        super().__init__(application=app, title="Paw Updater")
+        self.set_default_size(620, 560)
+
+        self.status = ui.status_page("Paw Updater", "Let's see if anything needs a groom.",
+                                     icon_name="org.uwubuntu.PawUpdater")
+        self.status.set_vexpand(False)
+
+        self.check_button = Gtk.Button(label="Check for updates")
+        self.check_button.add_css_class("pill")
+        self.check_button.connect("clicked", lambda *_: self.check())
+        self.update_button = Gtk.Button(label="Update everything", sensitive=False)
+        self.update_button.add_css_class("pill")
+        self.update_button.add_css_class("suggested-action")
+        self.update_button.connect("clicked", lambda *_: self.update())
+        self.restart_button = Gtk.Button(label="Restart now", visible=False)
+        self.restart_button.add_css_class("pill")
+        self.restart_button.add_css_class("destructive-action")
+        self.restart_button.connect("clicked", self._restart)
+
+        buttons = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER)
+        for button in (self.check_button, self.update_button, self.restart_button):
+            buttons.append(button)
+        self.spinner = Adw.Spinner(visible=False, halign=Gtk.Align.CENTER)
+
+        log, self.append_log = ui.make_log_view()
+        expander = Gtk.Expander(label="Details", child=log, margin_top=12)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                      margin_start=24, margin_end=24, margin_bottom=24)
+        box.append(self.status)
+        box.append(buttons)
+        box.append(self.spinner)
+        box.append(expander)
+
+        toolbar = Adw.ToolbarView(content=box)
+        toolbar.add_top_bar(Adw.HeaderBar(show_title=False))
+        self.set_content(toolbar)
+
+        self.runner = ui.CommandRunner(self.append_log, self._on_done)
+        self.mode = None
+        self.check()
+
+    def _busy(self, busy, message=None):
+        self.spinner.set_visible(busy)
+        self.check_button.set_sensitive(not busy)
+        if busy:
+            self.update_button.set_sensitive(False)
+        if message:
+            self.status.set_description(message)
+
+    def check(self):
+        self.mode = "check"
+        self._busy(True, "Sniffing around for updates...")
+        self.runner.run([
+            ["pkcon", "refresh", "--plain"],
+            ["pkcon", "get-updates", "--plain"],
+            ["flatpak", "remote-ls", "--updates", "--columns=application"],
+        ])
+
+    def update(self):
+        self.mode = "update"
+        self._busy(True, "Grooming your system, this can take a while...")
+        self.runner.run([
+            ["pkcon", "update", "--noninteractive", "--plain"],
+            ["flatpak", "update", "--noninteractive", "-y"],
+        ])
+
+    def _on_done(self, results):
+        self._busy(False)
+        by_cmd = {tuple(argv[:2]): (status, out) for argv, status, out in results}
+        if self.mode == "check":
+            system = count_pkcon_updates(by_cmd.get(("pkcon", "get-updates"), (0, ""))[1])
+            apps = count_flatpak_updates(by_cmd.get(("flatpak", "remote-ls"), (0, ""))[1])
+            if system + apps == 0:
+                self.status.set_title("All up to date (^w^)")
+                self.status.set_description("Nothing to do. Your den is spotless.")
+            else:
+                self.status.set_title(f"{system + apps} updates waiting")
+                self.status.set_description(f"{system} system packages, {apps} Flatpak apps.")
+                self.update_button.set_sensitive(True)
+        else:
+            failed = [argv for argv, status, _ in results
+                      if status not in (0, PKCON_NOTHING_TO_DO)]
+            if failed:
+                self.status.set_title("Some updates didn't finish")
+                self.status.set_description("Check the details below, then try again.")
+            else:
+                self.status.set_title("All done! Fresh as a daisy")
+                self.status.set_description("Everything is up to date.")
+            if os.path.exists("/run/reboot-required"):
+                self.status.set_description("A restart finishes the update.")
+                self.restart_button.set_visible(True)
+
+    def _restart(self, *_):
+        Gio.Subprocess.new(["systemctl", "reboot"], Gio.SubprocessFlags.NONE)
+
+
+class UpdaterApp(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+
+    def do_activate(self):
+        window = self.get_active_window() or UpdaterWindow(self)
+        window.present()
+
+
+if __name__ == "__main__":
+    sys.exit(UpdaterApp().run(sys.argv))

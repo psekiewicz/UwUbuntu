@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=UwU Settings
+Comment=Look, animations, terminal and startup tweaks
+Exec=uwu-settings
+Icon=org.uwubuntu.Settings
+Terminal=false
+Categories=GNOME;GTK;Settings;DesktopSettings;
+Keywords=tweaks;theme;wallpaper;accent;animations;wobbly;kitty;
+StartupNotify=true

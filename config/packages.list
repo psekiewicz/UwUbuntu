@@ -1,10 +1,39 @@
 # Extra packages installed on top of ubuntu-desktop-minimal.
-# One per line; '#' starts a comment.
+# One per line; '#' starts a comment. Packages missing from the archive are
+# skipped with a warning instead of failing the build.
 
-# App store with Flatpak/Flathub instead of an unseeded Snap store
+# Terminal: kitty is the default (see packages-remove.list for Ptyxis)
+kitty
+xdg-terminal-exec
+
+# App store with Flatpak/Flathub instead of the Snap store
 gnome-software
 gnome-software-plugin-flatpak
 flatpak
+packagekit-tools
+
+# GNOME extras (the animation extensions come from config/gnome-extensions.list)
+gnome-tweaks
+gnome-shell-extension-manager
+gnome-shell-extension-appindicator
+unzip
+
+# Hyprland session (pick it at the login screen)
+hyprland
+xdg-desktop-portal-hyprland
+hyprlock
+waybar
+wofi
+mako-notifier
+swaybg
+grim
+slurp
+wl-clipboard
+brightnessctl
+playerctl
+pavucontrol
+network-manager-gnome
+mate-polkit
 
 # Terminal fun
 fastfetch
@@ -14,13 +43,8 @@ lolcat
 sl
 
 # Everyday goodies
-gnome-tweaks
-gnome-shell-extension-manager
 ubuntu-restricted-addons
 vlc
 gimp
 inkscape
 krita
-
-# Community favourites
-gnome-shell-extension-appindicator

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=UwU Welcome
+Exec=uwu-welcome --autostart
+Icon=org.uwubuntu.Welcome
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-Delay=3

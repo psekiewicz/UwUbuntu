@@ -1,3 +1,23 @@
 # Packages purged from the image after everything else is installed.
+# A package is kept (with a warning) if removing it would also remove the
+# desktop metapackages, so this list can't break the image.
+
+# Canonical's own tools, replaced by GNOME Software + Paw Updater + UwU Settings
+update-manager
+update-notifier
+software-properties-gtk
+ubuntu-pro-client
+ubuntu-pro-client-l10n
+apport
+apport-gtk
+apport-symptoms
+whoopsie
 ubuntu-report
 popularity-contest
+snapd
+
+# Ubuntu's first-run wizard, replaced by UwU Welcome
+gnome-initial-setup
+
+# Replaced by kitty
+ptyxis

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Paw Updater
+Comment=Update the system and your apps in one click
+Exec=paw-updater
+Icon=org.uwubuntu.PawUpdater
+Terminal=false
+Categories=GNOME;GTK;System;PackageManager;
+Keywords=update;upgrade;packages;flatpak;
+StartupNotify=true

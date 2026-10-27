@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
-# Render the artwork and build the uwubuntu-branding .deb, plus the live-only
-# files (installer config) that build.sh copies into the chroot.
+# Render the artwork and build the UwUbuntu .debs (uwubuntu-branding and
+# uwubuntu-apps), plus the live-only files (installer config) that build.sh
+# copies into the chroot.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 ART="$ROOT/art"
 PKG="$STAGE/uwubuntu-branding"
+APPS="$STAGE/uwubuntu-apps"
 LIVE="$STAGE/live"
 
-log "Rendering branding package $PKG_VERSION"
-rm -rf "$PKG" "$LIVE" "$STAGE"/uwubuntu-branding_*.deb
+log "Rendering packages $PKG_VERSION"
+rm -rf "$PKG" "$APPS" "$LIVE" "$STAGE"/uwubuntu-*_all.deb
 mkdir -p "$STAGE"
 cp -a "$ROOT/branding/uwubuntu-branding" "$PKG"
+cp -a "$ROOT/branding/uwubuntu-apps" "$APPS"
 cp -a "$ROOT/live" "$LIVE"
 render_templates "$PKG"
+render_templates "$APPS"
 render_templates "$LIVE"
 
 log "Rendering artwork"
@@ -38,13 +42,29 @@ CAL="$LIVE/etc/calamares/branding/uwubuntu"
 img2png "$ART/logo.png" 128 128 "$CAL/logo.png"
 img2png "$ART/logo.png" 360 360 "$CAL/welcome.png"
 img2png "$ART/paw.svg"  96  96  "$CAL/paw.png"
+# App icons: art/icons/<name>.{svg,png} -> org.uwubuntu.<AppId>
+declare -A APP_ICONS=([welcome]=Welcome [settings]=Settings [paw-updater]=PawUpdater)
+for name in "${!APP_ICONS[@]}"; do
+  src="$(ls "$ART/icons/$name".* | head -n1)"
+  id="org.uwubuntu.${APP_ICONS[$name]}"
+  if [[ "$src" == *.svg ]]; then
+    install -Dm644 "$src" "$APPS/usr/share/icons/hicolor/scalable/apps/$id.svg"
+  fi
+  for size in 48 128 256; do
+    img2png "$src" $size $size "$APPS/usr/share/icons/hicolor/${size}x${size}/apps/$id.png"
+  done
+done
 
-log "Building .deb"
+log "Building .debs"
 # Sources may come from a Windows/WSL mount where everything is 0777.
-find "$PKG" "$LIVE" -type d -exec chmod 0755 {} +
-find "$PKG" "$LIVE" -type f -exec chmod 0644 {} +
+find "$PKG" "$APPS" "$LIVE" -type d -exec chmod 0755 {} +
+find "$PKG" "$APPS" "$LIVE" -type f -exec chmod 0644 {} +
 chmod 0755 "$PKG"/DEBIAN/{preinst,postinst,prerm,postrm} "$PKG"/usr/bin/* "$PKG"/etc/update-motd.d/*
+chmod 0755 "$APPS"/usr/bin/*
 chmod 0755 "$LIVE"/usr/lib/uwubuntu/installer/*
-echo "Installed-Size: $(du -sk --exclude=DEBIAN "$PKG" | cut -f1)" >> "$PKG/DEBIAN/control"
-dpkg-deb --root-owner-group --build "$PKG" "$STAGE/uwubuntu-branding_${PKG_VERSION}_all.deb"
-log "Built $STAGE/uwubuntu-branding_${PKG_VERSION}_all.deb"
+for dir in "$PKG" "$APPS"; do
+  echo "Installed-Size: $(du -sk --exclude=DEBIAN "$dir" | cut -f1)" >> "$dir/DEBIAN/control"
+  name="$(basename "$dir")"
+  dpkg-deb --root-owner-group --build "$dir" "$STAGE/${name}_${PKG_VERSION}_all.deb"
+  log "Built $STAGE/${name}_${PKG_VERSION}_all.deb"
+done

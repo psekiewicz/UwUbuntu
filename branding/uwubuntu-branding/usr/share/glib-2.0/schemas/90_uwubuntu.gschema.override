@@ -1,7 +1,25 @@
-# UwUbuntu desktop defaults. Loaded after Ubuntu's 10_ubuntu-settings override,
-# so anything set here wins. Users can still change all of it.
+# UwUbuntu desktop defaults. Users can still change all of it.
+#
+# Ubuntu's 10_ubuntu-settings override sets most of these in desktop-specific
+# sections ([schema:ubuntu], [schema:GNOME-Greeter]), and those always beat
+# plain sections no matter which file loads last. So every key is set three
+# times: plain (Hyprland and other sessions), :ubuntu (the GNOME session) and
+# :GNOME-Greeter (the login screen).
 
+# --- Wallpaper ----------------------------------------------------------------
 [org.gnome.desktop.background]
+picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-day.png'
+picture-uri-dark='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
+picture-options='zoom'
+primary-color='#2b1610'
+
+[org.gnome.desktop.background:ubuntu]
+picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-day.png'
+picture-uri-dark='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
+picture-options='zoom'
+primary-color='#2b1610'
+
+[org.gnome.desktop.background:GNOME-Greeter]
 picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-day.png'
 picture-uri-dark='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
 picture-options='zoom'
@@ -11,16 +29,47 @@ primary-color='#2b1610'
 picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
 primary-color='#2b1610'
 
+[org.gnome.desktop.screensaver:ubuntu]
+picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
+primary-color='#2b1610'
+
+# --- Look and feel ------------------------------------------------------------
 [org.gnome.desktop.interface]
 color-scheme='prefer-dark'
 accent-color='orange'
 gtk-theme='Yaru-dark'
 icon-theme='Yaru'
+enable-animations=true
 
+[org.gnome.desktop.interface:ubuntu]
+color-scheme='prefer-dark'
+accent-color='orange'
+gtk-theme='Yaru-dark'
+icon-theme='Yaru'
+enable-animations=true
+
+[org.gnome.desktop.interface:GNOME-Greeter]
+color-scheme='prefer-dark'
+accent-color='orange'
+gtk-theme='Yaru-dark'
+icon-theme='Yaru'
+
+# --- Shell: dock favourites + animation extensions ------------------------------
 [org.gnome.shell]
-favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Ptyxis.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
+favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'kitty.desktop', 'org.gnome.Software.desktop', 'org.uwubuntu.Settings.desktop']
+enabled-extensions=['burn-my-windows@schneegans.github.com', 'compiz-windows-effect@hermes83.github.com', 'compiz-alike-magic-lamp-effect@hermes83.github.com', 'blur-my-shell@aunetx']
+
+[org.gnome.shell:ubuntu]
+favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'kitty.desktop', 'org.gnome.Software.desktop', 'org.uwubuntu.Settings.desktop']
+enabled-extensions=['burn-my-windows@schneegans.github.com', 'compiz-windows-effect@hermes83.github.com', 'compiz-alike-magic-lamp-effect@hermes83.github.com', 'blur-my-shell@aunetx']
 
 [org.gnome.shell.extensions.dash-to-dock]
+dock-position='BOTTOM'
+extend-height=false
+dash-max-icon-size=48
+transparency-mode='DYNAMIC'
+
+[org.gnome.shell.extensions.dash-to-dock:ubuntu]
 dock-position='BOTTOM'
 extend-height=false
 dash-max-icon-size=48

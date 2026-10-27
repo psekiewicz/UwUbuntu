@@ -3,7 +3,6 @@ title-text: ""
 desktop-image: "background.png"
 desktop-color: "#2b1610"
 message-color: "#f7ede8"
-terminal-box: ""
 
 + image {
     top = 9%

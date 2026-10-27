@@ -59,7 +59,7 @@ umount_chroot() {
 
 stage_customize() {
   [[ -e "$WORK/.bootstrapped" ]] || die "run the bootstrap stage first"
-  ls "$STAGE"/uwubuntu-branding_*.deb >/dev/null 2>&1 || die "run the branding stage first"
+  ls "$STAGE"/uwubuntu-{branding,apps}_*.deb >/dev/null 2>&1 || die "run the branding stage first"
 
   log "Customizing the chroot"
   trap umount_chroot EXIT
@@ -67,7 +67,7 @@ stage_customize() {
 
   rm -rf "$CHROOT/tmp/uwubuntu"
   mkdir -p "$CHROOT/tmp/uwubuntu"
-  cp "$ROOT/scripts/chroot-setup.sh" "$ROOT"/config/packages*.list "$STAGE"/uwubuntu-branding_*.deb \
+  cp "$ROOT/scripts/chroot-setup.sh" "$ROOT"/config/*.list "$STAGE"/uwubuntu-*_all.deb \
      "$CHROOT/tmp/uwubuntu/"
   cp -a "$STAGE/live" "$CHROOT/tmp/uwubuntu/live"
   cp -L /etc/resolv.conf "$CHROOT/tmp/uwubuntu/host-resolv.conf"
