@@ -114,8 +114,9 @@ WebP all work; the paths are in `scripts/make-branding.sh`):
 - `logo.png`: the kitty-eared logo (app icon, boot splash, GRUB, installer)
 - `wallpaper-day.webp`, `wallpaper-night.webp`: desktop wallpapers for light and dark mode
 - `paw.svg`: single paw print used in the boot animation and slideshow
-- `grub-background.svg`: plain boot menu background (the wallpapers have the
-  logo right where the menu goes)
+- `grub-background.svg`: **placeholder** boot menu background, to be replaced.
+  Keep the middle clear (roughly 25–75% across, 36–78% down), since that's
+  where the menu is drawn and the logo sits just above it
 - Wishlist, not wired up yet: a paw cursor theme, a mascot character for the
   installer slideshow, login/notification sounds, extra wallpapers, and 4K
   versions of the wallpapers (the current ones are 1920×1080)
