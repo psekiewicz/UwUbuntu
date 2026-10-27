@@ -7,8 +7,8 @@ Propably not.
 
 ---
 
-A fluffy Ubuntu remix built on **Ubuntu 26.04 LTS "Resolute Raccoon"**, with
-five years of upstream updates and a lot more paw prints.
+A Ubuntu remix built on **Ubuntu 26.04 LTS "Resolute Raccoon"**, with
+five years of upstream updates.
 
 | | |
 |---|---|
