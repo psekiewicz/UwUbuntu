@@ -166,14 +166,68 @@ sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
 locale-gen
 echo 'LANG=en_US.UTF-8' > /etc/default/locale
 
+log "UwUbuntu desktop metapackage"
+# Ubuntu's ubuntu-desktop-minimal depends on update-manager and friends, so it
+# goes when they do, and then nothing pulls new desktop packages in on upgrade.
+# Like Linux Mint, replace it with our own copy of its dependency list: minus
+# what we remove, plus our extras.
+mkdir -p "$IN/desktop/DEBIAN"
+python3 - "$PKG_VERSION" "$IN/packages-remove.list" "$IN/packages.list" \
+  > "$IN/desktop/DEBIAN/control" <<'PY'
+import re, subprocess, sys
+
+version, remove_list, extras_list = sys.argv[1:4]
+
+def names(path):
+    with open(path, encoding="utf-8") as f:
+        return [l.split("#", 1)[0].strip() for l in f if l.split("#", 1)[0].strip()]
+
+unwanted = set(names(remove_list))
+show = subprocess.run(["apt-cache", "show", "--no-all-versions", "ubuntu-desktop-minimal"],
+                      capture_output=True, text=True, check=True).stdout
+fields = dict(re.findall(r"^(Depends|Recommends): (.*)$", show, re.M))
+
+def keep(field):
+    kept = []
+    for dep in fields.get(field, "").split(","):
+        alts = [a.strip() for a in dep.split("|") if a.strip()]
+        alts = [a for a in alts if re.split(r"[ (:]", a)[0] not in unwanted]
+        if alts:
+            kept.append(" | ".join(alts))
+    return kept
+
+installed = set(subprocess.run(["dpkg-query", "-W", "-f=${Package}\n"],
+                               capture_output=True, text=True).stdout.split())
+depends = keep("Depends") + ["uwubuntu-branding", "uwubuntu-apps"]
+recommends = keep("Recommends") + [p for p in names(extras_list) if p in installed]
+print("Package: uwubuntu-desktop")
+print(f"Version: {version}")
+print("Architecture: all")
+print("Maintainer: UwUbuntu Developers <uwubuntu@example.org>")
+print("Section: metapackages")
+print("Priority: optional")
+print("Depends: " + ", ".join(depends))
+if recommends:
+    print("Recommends: " + ", ".join(recommends))
+print("Description: UwUbuntu desktop system")
+print(" Everything Ubuntu's desktop metapackage pulls in, minus Canonical's own")
+print(" tools, plus UwUbuntu's extras, so upgrades keep the desktop complete.")
+PY
+dpkg-deb --root-owner-group --build "$IN/desktop" "$IN/uwubuntu-desktop_${PKG_VERSION}_all.deb"
+"${APT[@]}" install "$IN/uwubuntu-desktop_${PKG_VERSION}_all.deb"
+
 log "Removing unwanted packages"
-# Never let a removal drag these out with it (they pull in the whole desktop,
+# Never let a removal drag these out with it (they hold the desktop together,
 # and losing them would make autoremove delete everything they brought in).
-PROTECTED='^Remv (ubuntu-minimal|ubuntu-standard|ubuntu-desktop-minimal|ubuntu-desktop|gnome-shell|gdm3|uwubuntu-[a-z]+) '
+# ubuntu-desktop-minimal may go: uwubuntu-desktop replaces it.
+PROTECTED='^Remv (ubuntu-minimal|ubuntu-standard|uwubuntu-[a-z]+|gnome-shell|gdm3)[ :]'
 mapfile -t unwanted < <(read_list "$IN/packages-remove.list")
 for pkg in "${unwanted[@]}"; do
   dpkg -s "$pkg" >/dev/null 2>&1 || continue
-  if apt-get -s purge "$pkg" | grep -qE "$PROTECTED"; then
+  # Save the simulation first: piping it into "grep -q" lets grep exit early,
+  # apt dies of SIGPIPE, and with pipefail the match reads as "no match".
+  simulation="$(apt-get -s purge "$pkg" 2>/dev/null || true)"
+  if grep -qE "$PROTECTED" <<<"$simulation"; then
     warn "keeping '$pkg': removing it would also remove the desktop"
     continue
   fi
