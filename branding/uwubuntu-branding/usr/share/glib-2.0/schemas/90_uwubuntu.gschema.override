@@ -5,17 +5,17 @@
 picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-day.png'
 picture-uri-dark='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
 picture-options='zoom'
-primary-color='#1b1030'
+primary-color='#2b1610'
 
 [org.gnome.desktop.screensaver]
 picture-uri='file:///usr/share/backgrounds/uwubuntu/uwubuntu-night.png'
-primary-color='#1b1030'
+primary-color='#2b1610'
 
 [org.gnome.desktop.interface]
 color-scheme='prefer-dark'
-accent-color='pink'
-gtk-theme='Yaru-magenta-dark'
-icon-theme='Yaru-magenta'
+accent-color='orange'
+gtk-theme='Yaru-dark'
+icon-theme='Yaru'
 
 [org.gnome.shell]
 favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Ptyxis.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']

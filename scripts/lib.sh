@@ -37,8 +37,41 @@ render_templates() {
   done < <(find "$1" -type f -name '*.in' -print0)
 }
 
-# svg2png SRC WIDTH HEIGHT DEST
-svg2png() {
+imagemagick() { if command -v magick >/dev/null; then magick "$@"; else convert "$@"; fi; }
+
+# Decode .webp to a temporary .png (ImageMagick's own WebP support varies);
+# prints the path to use.
+decode_webp() {
+  local tmp
+  if [[ "$1" == *.webp ]]; then
+    tmp="$(mktemp --suffix=.png)"
+    dwebp -quiet "$1" -o "$tmp"
+    echo "$tmp"
+  else
+    echo "$1"
+  fi
+}
+
+# img2png SRC WIDTH HEIGHT DEST: fit SVG/PNG/WebP into a transparent
+# WIDTHxHEIGHT box. Always writes 8-bit non-interlaced PNG (GRUB is picky).
+img2png() {
+  local src
   mkdir -p "$(dirname "$4")"
-  rsvg-convert --width "$2" --height "$3" --keep-aspect-ratio --output "$4" "$1"
+  if [[ "$1" == *.svg ]]; then
+    rsvg-convert --width "$2" --height "$3" --keep-aspect-ratio --output "$4" "$1"
+    return
+  fi
+  src="$(decode_webp "$1")"
+  imagemagick "$src" -resize "${2}x${3}" -background none -gravity center \
+    -extent "${2}x${3}" -depth 8 -interlace none "PNG32:$4"
+  [[ "$src" == "$1" ]] || rm -f "$src"
+}
+
+# wallpaper2png SRC DEST: flatten to an opaque PNG at native resolution.
+wallpaper2png() {
+  local src
+  mkdir -p "$(dirname "$2")"
+  src="$(decode_webp "$1")"
+  imagemagick "$src" -background black -alpha remove -alpha off -depth 8 -interlace none "PNG24:$2"
+  [[ "$src" == "$1" ]] || rm -f "$src"
 }

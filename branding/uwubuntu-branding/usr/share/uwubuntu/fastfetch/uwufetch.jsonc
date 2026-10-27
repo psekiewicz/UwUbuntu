@@ -4,10 +4,10 @@
   "logo": {
     "type": "file",
     "source": "/usr/share/uwubuntu/fastfetch/paw.txt",
-    "color": { "1": "magenta" },
+    "color": { "1": "38;5;202" },
     "padding": { "top": 1, "right": 3 }
   },
-  "display": { "separator": "  ", "color": { "keys": "magenta" } },
+  "display": { "separator": "  ", "color": { "keys": "38;5;209" } },
   "modules": [
     "title",
     "separator",

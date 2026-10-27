@@ -5,10 +5,10 @@
   "logo": {
     "type": "file",
     "source": "/usr/share/uwubuntu/fastfetch/paw.txt",
-    "color": { "1": "magenta" },
+    "color": { "1": "38;5;202" },
     "padding": { "top": 1, "right": 3 }
   },
-  "display": { "color": { "keys": "magenta" } },
+  "display": { "color": { "keys": "38;5;209" } },
   "modules": [
     "title", "separator", "os", "host", "kernel", "uptime", "packages", "shell",
     "display", "de", "wm", "terminal", "cpu", "gpu", "memory", "disk",

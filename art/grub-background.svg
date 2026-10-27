@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <!-- GRUB menu background: the night wallpaper's colours, minus the centre logo -->
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.45" r="0.75">
+      <stop offset="0" stop-color="#5a2a12"/>
+      <stop offset="0.55" stop-color="#3a1d12"/>
+      <stop offset="1" stop-color="#1f0f0a"/>
+    </radialGradient>
+    <g id="p">
+      <path d="M0,-2 C20,-2 40,22 38,38 C36,54 20,54 0,48 C-20,54 -36,54 -38,38 C-40,22 -20,-2 0,-2Z"/>
+      <ellipse cx="-40" cy="-14" rx="11" ry="15" transform="rotate(-20 -40 -14)"/>
+      <ellipse cx="-15" cy="-38" rx="12" ry="16" transform="rotate(-6 -15 -38)"/>
+      <ellipse cx="15" cy="-38" rx="12" ry="16" transform="rotate(6 15 -38)"/>
+      <ellipse cx="40" cy="-14" rx="11" ry="15" transform="rotate(20 40 -14)"/>
+    </g>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <!-- paw trail in the corners, clear of the menu -->
+  <g fill="#1a0b06" opacity="0.45">
+    <use href="#p" transform="translate(130 1000) rotate(65) scale(0.6)"/>
+    <use href="#p" transform="translate(240 880) rotate(65) scale(0.6)"/>
+    <use href="#p" transform="translate(390 880) rotate(65) scale(0.6)"/>
+    <use href="#p" transform="translate(1530 200) rotate(65) scale(0.6)"/>
+    <use href="#p" transform="translate(1680 200) rotate(65) scale(0.6)"/>
+    <use href="#p" transform="translate(1790 80) rotate(65) scale(0.6)"/>
+  </g>
+</svg>

@@ -9,5 +9,5 @@ Recommends: yaru-theme-gtk, yaru-theme-icon, gnome-shell-extension-ubuntu-dock
 Homepage: @DISTRO_HOME_URL@
 Description: @DISTRO_NAME@ artwork, boot splash and desktop defaults
  Paw-print wallpapers, a fluffy Plymouth boot splash, a GRUB theme, GNOME
- defaults (pink accent, dark mode), os-release branding and some silly
+ defaults (orange accent, dark mode), os-release branding and some silly
  terminal toys (uwuify, uwufetch).

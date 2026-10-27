@@ -13,7 +13,7 @@ five years of upstream updates.
 | | |
 |---|---|
 | Base | Ubuntu 26.04 LTS (switch to 26.10 "Stonking Stingray" in `config/uwubuntu.conf`) |
-| Desktop | GNOME, Ubuntu dock at the bottom, dark mode + pink accent |
+| Desktop | GNOME, Ubuntu dock at the bottom, dark mode + orange accent |
 | Installer | Calamares, with a custom slideshow and branding |
 | Apps | GNOME Software + Flathub, Firefox `.deb` straight from Mozilla (no snap), Krita, Inkscape, GIMP, VLC |
 | Boot | Themed GRUB menu and an animated "walking paws" Plymouth splash (with LUKS prompt) |
@@ -106,15 +106,21 @@ VirtualBox and GNOME Boxes work too. Turn on EFI in the VM settings to test the 
   publishing ISOs, read Canonical's [IP rights policy](https://ubuntu.com/legal/intellectual-property-policy)
   on remixes, or consider a name without "Ubuntu" in it.
 
-## Artwork wanted
+## Artwork
 
-Everything in `art/` is a placeholder. Drop in replacements with the same
-filenames (SVG preferred, or change the paths in `scripts/make-branding.sh`):
+Everything is in `art/` and gets resized and converted at build time (SVG, PNG and
+WebP all work; the paths are in `scripts/make-branding.sh`):
 
-- `logo.svg`: main logo / mascot head (also the app icon, boot logo, installer logo)
-- `wallpaper-day.svg`, `wallpaper-night.svg`: 16:9 desktop wallpapers, 4K
+- `logo.png`: the kitty-eared logo (app icon, boot splash, GRUB, installer)
+- `wallpaper-day.webp`, `wallpaper-night.webp`: desktop wallpapers for light and dark mode
 - `paw.svg`: single paw print used in the boot animation and slideshow
+- `grub-background.svg`: plain boot menu background (the wallpapers have the
+  logo right where the menu goes)
 - Wishlist, not wired up yet: a paw cursor theme, a mascot character for the
-  installer slideshow, login/notification sounds, and extra wallpapers
+  installer slideshow, login/notification sounds, extra wallpapers, and 4K
+  versions of the wallpapers (the current ones are 1920×1080)
+
+The logo is based on Ubuntu's Circle of Friends, which is a Canonical trademark.
+Fine for a fan project, but check the policy linked above before distributing widely.
 
 Open `art/preview.html` through the `art-preview` launch config to see them all at once.

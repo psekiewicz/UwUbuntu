@@ -8,7 +8,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib.sh"
 
 HOST_DEPS=(debootstrap squashfs-tools xorriso grub-common grub-pc-bin grub-efi-amd64-bin
-           mtools dosfstools librsvg2-bin dpkg-dev ubuntu-keyring)
+           mtools dosfstools librsvg2-bin imagemagick webp dpkg-dev ubuntu-keyring)
 
 stage_deps() {
   log "Installing host build dependencies"

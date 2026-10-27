@@ -19,8 +19,8 @@ Presentation {
         Rectangle {
             anchors.fill: parent
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#1b1030" }
-                GradientStop { position: 1.0; color: "#4a1f5e" }
+                GradientStop { position: 0.0; color: "#2b1610" }
+                GradientStop { position: 1.0; color: "#5a2a12" }
             }
         }
         Image {
@@ -43,7 +43,7 @@ Presentation {
         }
         Text {
             text: body
-            color: "#e9c7ff"
+            color: "#f1d9cc"
             font.pixelSize: 17
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter

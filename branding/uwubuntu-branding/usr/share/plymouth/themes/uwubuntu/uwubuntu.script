@@ -1,7 +1,7 @@
 // UwUbuntu boot splash: logo, plus paw prints that walk across underneath.
 
-Window.SetBackgroundTopColor(0.11, 0.06, 0.19);
-Window.SetBackgroundBottomColor(0.29, 0.12, 0.37);
+Window.SetBackgroundTopColor(0.17, 0.09, 0.06);
+Window.SetBackgroundBottomColor(0.35, 0.16, 0.07);
 
 cx = Window.GetX() + Window.GetWidth() / 2;
 cy = Window.GetY() + Window.GetHeight() / 2;
@@ -51,7 +51,7 @@ fun display_password_callback(prompt_text, bullets) {
         line = line + "•";
         k++;
     }
-    img = Image.Text(line, 1, 0.85, 1);
+    img = Image.Text(line, 0.97, 0.91, 0.87);
     global.prompt.sprite.SetImage(img);
     global.prompt.sprite.SetX(cx - img.GetWidth() / 2);
     global.prompt.sprite.SetY(cy + 170);
@@ -70,7 +70,7 @@ message.sprite = Sprite();
 message.sprite.SetZ(20);
 
 fun message_callback(text) {
-    img = Image.Text(text, 0.91, 0.78, 1);
+    img = Image.Text(text, 0.94, 0.75, 0.62);
     global.message.sprite.SetImage(img);
     global.message.sprite.SetX(cx - img.GetWidth() / 2);
     global.message.sprite.SetY(Window.GetY() + Window.GetHeight() - 60);

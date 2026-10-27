@@ -1,8 +1,8 @@
 # UwUbuntu GRUB theme (used by both the installed system and the live ISO)
 title-text: ""
 desktop-image: "background.png"
-desktop-color: "#1b1030"
-message-color: "#f5e6ff"
+desktop-color: "#2b1610"
+message-color: "#f7ede8"
 terminal-box: ""
 
 + image {
@@ -18,7 +18,7 @@ terminal-box: ""
     top = 36%
     width = 50%
     height = 42%
-    item_color = "#e9c7ff"
+    item_color = "#f1d9cc"
     selected_item_color = "#ffffff"
     item_height = 34
     item_padding = 12
@@ -33,7 +33,7 @@ terminal-box: ""
     left = 0
     width = 100%
     align = "center"
-    color = "#d9a8ff"
+    color = "#f4a27c"
     text = "(=^·ω·^=)  pick your path, pawtner"
 }
 
@@ -43,6 +43,6 @@ terminal-box: ""
     left = 0
     width = 100%
     align = "center"
-    color = "#b48ad0"
+    color = "#b98a74"
     text = "booting in %d seconds"
 }
