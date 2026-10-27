@@ -17,23 +17,6 @@ gnome-shell-extension-manager
 gnome-shell-extension-appindicator
 unzip
 
-# Hyprland session (pick it at the login screen)
-hyprland
-xdg-desktop-portal-hyprland
-hyprlock
-waybar
-wofi
-mako-notifier
-swaybg
-grim
-slurp
-wl-clipboard
-brightnessctl
-playerctl
-pavucontrol
-network-manager-gnome
-mate-polkit
-
 # Terminal fun
 fastfetch
 cowsay

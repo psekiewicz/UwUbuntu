@@ -3,7 +3,7 @@
 # Ubuntu's 10_ubuntu-settings override sets most of these in desktop-specific
 # sections ([schema:ubuntu], [schema:GNOME-Greeter]), and those always beat
 # plain sections no matter which file loads last. So every key is set three
-# times: plain (Hyprland and other sessions), :ubuntu (the GNOME session) and
+# times: plain (any other session), :ubuntu (the GNOME session) and
 # :GNOME-Greeter (the login screen).
 
 # --- Wallpaper ----------------------------------------------------------------

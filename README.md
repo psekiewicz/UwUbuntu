@@ -18,8 +18,7 @@ five years of upstream updates.
 | | |
 |---|---|
 | Base | Ubuntu 26.04 LTS (switch to 26.10 "Stonking Stingray" in `config/uwubuntu.conf`) |
-| Desktop | GNOME (default): dock at the bottom, dark mode + orange accent, wobbly windows, magic-lamp minimise, Burn My Windows effects, Blur My Shell |
-| Second desktop | Hyprland, picked from the gear on the login screen: bouncy animations, gradient borders, waybar, wofi, hyprlock, all themed |
+| Desktop | GNOME: dock at the bottom, dark mode + orange accent, wobbly windows, magic-lamp minimise, Burn My Windows effects, Blur My Shell |
 | Terminal | kitty with the "Ember" colour theme and a cursor trail |
 | Our own apps | **UwU Welcome** (first-run tour + Flathub app picker), **UwU Settings** (look, animations, terminal, startup), **Paw Updater** (system + Flatpak updates) |
 | No Canonical extras | No snap, Ubuntu Pro, Update Manager, Apport or telemetry |
@@ -28,22 +27,6 @@ five years of upstream updates.
 | Boot | Themed GRUB menu and an animated "walking paws" Plymouth splash (with LUKS prompt) |
 | Toys | `uwufetch`, `uwuify`, a furry MOTD, `cowsay`, `lolcat`, `sl` |
 
-### Hyprland keys
-
-| Keys | Does |
-|---|---|
-| Super + Return | kitty |
-| Super + D / Super + Space | app launcher |
-| Super + E | files |
-| Super + Q | close window |
-| Super + F / V | fullscreen / float |
-| Super + L | lock |
-| Super + 1…9, Super + Shift + 1…9 | switch / move to workspace |
-| Print, Shift + Print | screenshot area / screen to clipboard |
-| Super + Shift + M | log out |
-
-The config is in `~/.config/hypr/hyprland.conf`.
-
 ## Layout
 
 ```
@@ -51,7 +34,7 @@ config/            what to build: names, versions, mirrors, package and
                    GNOME extension lists
 art/               source artwork (SVG/PNG/WebP), rendered at build time
 branding/          the two .debs: uwubuntu-branding (os-release, wallpapers,
-                   plymouth, grub, GNOME/kitty/Hyprland defaults, terminal
+                   plymouth, grub, GNOME/kitty defaults, terminal
                    toys) and uwubuntu-apps (Welcome, Settings, Paw Updater)
 live/              files that only exist on the live ISO (Calamares installer)
 iso/               boot menu of the ISO

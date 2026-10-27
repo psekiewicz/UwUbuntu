@@ -133,11 +133,13 @@ class WelcomeWindow(Adw.ApplicationWindow):
 
     def _desktop_page(self):
         return ui.status_page(
-            "Two dens to choose from",
-            "GNOME is the comfy default, now with wobbly windows and magic-lamp animations.\n\n"
-            "Hyprland is a bouncy tiling desktop for keyboard lovers. Pick it from the gear "
-            "button on the login screen. Super+Return opens kitty, Super+D opens apps.",
-            icon_name="video-display-symbolic")
+            "Tricks of the den",
+            "Press Super to see all your windows and search for apps.\n"
+            "Ctrl+Alt+T opens kitty, your terminal. Try uwufetch in it!\n"
+            "Drag a window to a screen edge (or Super+arrow keys) to snap it.\n\n"
+            "Windows wobble, burn and get sucked into the dock when you minimise. "
+            "Too much? Tone it down in UwU Settings.",
+            icon_name="input-keyboard-symbolic")
 
     def _apps_page(self):
         installed = installed_flatpaks()
