@@ -65,12 +65,12 @@ ln -sf /etc/machine-id /var/lib/dbus/machine-id
 
 log "Kernel, live boot and bootloader tools"
 fix_dns
-# grub-efi-amd64 (not grub-pc): UEFI is the main target, and installing it
-# here keeps every GRUB package at matching versions. BIOS installs swap to
-# grub-pc in post-install.sh. Don't touch NVRAM from inside a chroot.
+# grub-efi-amd64 (not grub-pc): UEFI is the main target. The two conflict, so
+# grub-gfxpayload-lists (BIOS-only, depends on grub-pc) is left out too. BIOS
+# installs swap to grub-pc in post-install.sh. Don't touch NVRAM in a chroot.
 echo "grub-efi-amd64 grub2/update_nvram boolean false" | debconf-set-selections
 "${APT[@]}" install linux-generic casper laptop-detect os-prober network-manager locales \
-  grub-common grub2-common grub-gfxpayload-lists grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 \
+  grub-common grub2-common grub-pc-bin grub-efi-amd64-bin grub-efi-amd64 \
   grub-efi-amd64-signed shim-signed efibootmgr mtools dosfstools
 
 log "Firefox straight from Mozilla (Ubuntu's 'firefox' is a snap wrapper)"
