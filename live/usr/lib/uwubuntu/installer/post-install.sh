@@ -23,4 +23,6 @@ apt-get -y autoremove --purge || true
 rm -rf /etc/calamares /usr/share/applications/uwubuntu-installer.desktop /usr/lib/uwubuntu/installer
 rm -f /usr/share/glib-2.0/schemas/95_uwubuntu-live.gschema.override
 glib-compile-schemas /usr/share/glib-2.0/schemas || true
+# Run triggers the purges above left queued (menus, udev rules, dbus)
+dpkg --configure --pending || true
 exit 0
