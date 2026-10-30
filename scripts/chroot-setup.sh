@@ -147,11 +147,19 @@ for uuid in "${extensions[@]}"; do
   curl -fsSL "https://extensions.gnome.org$url" -o /tmp/extension.zip
   unzip -q -o /tmp/extension.zip -d "$dest"
   rm -f /tmp/extension.zip
-  # system-wide extensions need their settings schemas in the global dir
   if compgen -G "$dest/schemas/*.gschema.xml" >/dev/null; then
+    # GNOME Shell reads an extension's settings from its own schemas/gschemas.compiled
+    # whenever that folder exists, and refuses to enable it (state ERROR) without one.
+    # Installing from the website compiles it; unzipping by hand doesn't.
+    glib-compile-schemas --strict "$dest/schemas"
+    # also in the global dir, for tools that read them outside the shell
     cp "$dest"/schemas/*.gschema.xml /usr/share/glib-2.0/schemas/
   fi
   chmod -R u=rwX,go=rX "$dest"
+  if [[ -d "$dest/schemas" && ! -f "$dest/schemas/gschemas.compiled" ]]; then
+    warn "extension '$uuid' has a schemas folder but no compiled schemas: it would fail to load"
+    exit 1
+  fi
   log "  installed $uuid"
 done
 glib-compile-schemas /usr/share/glib-2.0/schemas
