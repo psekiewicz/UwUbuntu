@@ -18,9 +18,10 @@ five years of upstream updates.
 | | |
 |---|---|
 | Base | Ubuntu 26.04 LTS (switch to 26.10 "Stonking Stingray" in `config/uwubuntu.conf`) |
-| Desktop | GNOME: dock at the bottom, dark mode + orange accent, wobbly windows, magic-lamp minimise, Burn My Windows effects, Blur My Shell |
-| Terminal | kitty with the "Ember" colour theme and a cursor trail, JetBrainsMono Nerd Font, and a Starship prompt using the Pastel Powerline preset (`~/.config/starship.toml`) |
-| Our own apps | **UwU Welcome** (first-run tour + Flathub app picker), **UwU Settings** (look, animations, terminal, startup), **Paw Updater** (system + Flatpak updates) |
+| Desktop | GNOME: dock at the bottom, dark mode + orange accent, subtle animations by default (magic-lamp minimise, Blur My Shell); wobbly windows and Burn My Windows are one switch away in UwU Settings |
+| Terminal | **UwTerminal** (kitty) with the "Ember" colour theme and a cursor trail, JetBrainsMono Nerd Font, and a Starship prompt using the Pastel Powerline preset (`~/.config/starship.toml`) |
+| Our own apps | **UwU Settings** (the settings hub: UwUbuntu's look, animations, terminal and prompt style, plus every system setting grouped by topic), **UwU Welcome** (first-run tour + Flathub app picker), **UwU Monitor** (CPU, memory, disk, network, hungriest processes), **Paw Updater** (system + Flatpak updates) |
+| Renamed apps | Files → **UwFiles**, Software → **UwCenter**, kitty → **UwTerminal** (`branding/uwubuntu-branding/usr/share/uwubuntu/app-names.list`; the old names still work in search) |
 | No Canonical extras | No snap, Ubuntu Pro, Update Manager, Apport or telemetry |
 | Installer | Calamares, with a custom slideshow and branding |
 | Apps | GNOME Software + Flathub, Firefox `.deb` straight from Mozilla, Krita, Inkscape, GIMP, VLC |
@@ -35,7 +36,7 @@ config/            what to build: names, versions, mirrors, package and
 art/               source artwork (SVG/PNG/WebP), rendered at build time
 branding/          the two .debs: uwubuntu-branding (os-release, wallpapers,
                    plymouth, grub, GNOME/kitty defaults, terminal
-                   toys) and uwubuntu-apps (Welcome, Settings, Paw Updater)
+                   toys) and uwubuntu-apps (Welcome, Settings, Monitor, Paw Updater)
 live/              files that only exist on the live ISO (Calamares installer)
 iso/               boot menu of the ISO
 scripts/           build stages (chroot-setup.sh runs inside the new system)
@@ -129,6 +130,7 @@ WebP all work; the paths are in `scripts/make-branding.sh`):
   where the menu is drawn and the logo sits just above it
 - `icons/welcome.png`, `icons/settings.png`, `icons/paw-updater.png`: icons for
   UwU Welcome, UwU Settings and Paw Updater (square, 256 px or bigger; `.svg` works too)
+- `icons/monitor.svg`: **placeholder** icon for UwU Monitor
 - Wishlist, not wired up yet: a paw cursor theme, a mascot character for the
   installer slideshow, login/notification sounds, extra wallpapers, and 4K
   versions of the wallpapers (the current ones are 1920×1080)

@@ -1,0 +1,7 @@
+# Stock apps shown under UwUbuntu names: <desktop file id>  <new name>
+# The original .desktop file is diverted to *.desktop.ubuntu and a renamed
+# copy is generated from it (/usr/lib/uwubuntu/rename-apps), so app updates
+# keep working. The old name stays searchable as a keyword.
+org.gnome.Nautilus.desktop   UwFiles
+org.gnome.Software.desktop   UwCenter
+kitty.desktop                UwTerminal

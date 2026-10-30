@@ -1,0 +1,50 @@
+#!/bin/sh
+# Regenerate the UwUbuntu-named copies of stock app launchers from their
+# diverted originals (see /usr/share/uwubuntu/app-names.list). Run by the
+# uwubuntu-branding postinst, and again via a dpkg trigger whenever a package
+# changes /usr/share/applications, so renamed apps follow upstream updates.
+set -e
+LIST=/usr/share/uwubuntu/app-names.list
+APPS=/usr/share/applications
+
+sed -e 's/#.*//' "$LIST" | while read -r id name; do
+    [ -n "$id" ] || continue
+    original="$APPS/$id.ubuntu"
+    target="$APPS/$id"
+    if [ ! -f "$original" ]; then
+        rm -f "$target"          # app not installed (or removed): no launcher
+        continue
+    fi
+    # In [Desktop Entry] only: one Name= with the new name (translations
+    # dropped, so it reads the same in every language) and the old name added
+    # to Keywords= so searching "Files" etc. still finds it.
+    awk -v name="$name" '
+        /^\[/ { section = $0 }
+        section == "[Desktop Entry]" && /^Name=/ { old = substr($0, 6) }
+        { lines[NR] = $0 }
+        END {
+            section = ""; named = 0; keyworded = 0
+            for (i = 1; i <= NR; i++) {
+                line = lines[i]
+                if (line ~ /^\[/) {
+                    if (section == "[Desktop Entry]" && !keyworded && old != "")
+                        print "Keywords=" old ";"
+                    section = line
+                }
+                if (section == "[Desktop Entry]") {
+                    if (line ~ /^Name(\[[^]]*\])?=/) {
+                        if (!named) { print "Name=" name; named = 1 }
+                        continue
+                    }
+                    if (line ~ /^Keywords=/) {
+                        sub(/;?$/, ";" old ";", line); keyworded = 1
+                    }
+                }
+                print line
+            }
+            if (section == "[Desktop Entry]" && !keyworded && old != "")
+                print "Keywords=" old ";"
+        }' "$original" > "$target.uwubuntu-tmp"
+    chmod 0644 "$target.uwubuntu-tmp"
+    mv "$target.uwubuntu-tmp" "$target"
+done

@@ -3,8 +3,28 @@ set -e
 
 THEME=/usr/share/plymouth/themes/uwubuntu/uwubuntu.plymouth
 TEMPLATES=/usr/share/python-apt/templates
+APP_NAMES=/usr/share/uwubuntu/app-names.list
+
+# Stock apps shown under UwUbuntu names: divert each launcher (once) and
+# generate the renamed copy. Diverting a launcher whose app isn't installed
+# yet is fine; its file lands at *.ubuntu and the trigger renames it.
+rename_apps() {
+    sed -e 's/#.*//' "$APP_NAMES" | while read -r id name; do
+        [ -n "$id" ] || continue
+        dpkg-divert --package uwubuntu-branding --add --rename \
+            --divert "/usr/share/applications/$id.ubuntu" "/usr/share/applications/$id" >/dev/null
+    done
+    /usr/lib/uwubuntu/rename-apps
+}
+
+if [ "$1" = triggered ]; then
+    rename_apps
+    exit 0
+fi
 
 if [ "$1" = configure ]; then
+    rename_apps
+
     update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
         default.plymouth "$THEME" 150
     update-alternatives --set default.plymouth "$THEME"

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- placeholder: UwU Monitor (heartbeat line over a paw) -->
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4835a"/><stop offset="1" stop-color="#c23d06"/></linearGradient></defs>
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#g)"/>
+  <g fill="#fff6f0" opacity="0.35" transform="translate(64 70) scale(0.62)"><path d="M0,-2 C20,-2 40,22 38,38 C36,54 20,54 0,48 C-20,54 -36,54 -38,38 C-40,22 -20,-2 0,-2Z"/><ellipse cx="-40" cy="-14" rx="11" ry="15" transform="rotate(-20 -40 -14)"/><ellipse cx="-15" cy="-38" rx="12" ry="16" transform="rotate(-6 -15 -38)"/><ellipse cx="15" cy="-38" rx="12" ry="16" transform="rotate(6 15 -38)"/><ellipse cx="40" cy="-14" rx="11" ry="15" transform="rotate(20 40 -14)"/></g>
+  <polyline points="20,70 42,70 52,48 64,92 76,36 86,70 108,70" fill="none" stroke="#fff6f0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

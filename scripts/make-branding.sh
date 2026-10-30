@@ -44,7 +44,7 @@ img2png "$ART/logo.png" 128 128 "$CAL/logo.png"
 img2png "$ART/logo.png" 360 360 "$CAL/welcome.png"
 img2png "$ART/paw.svg"  96  96  "$CAL/paw.png"
 # App icons: art/icons/<name>.{svg,png} -> org.uwubuntu.<AppId>
-declare -A APP_ICONS=([welcome]=Welcome [settings]=Settings [paw-updater]=PawUpdater)
+declare -A APP_ICONS=([welcome]=Welcome [settings]=Settings [paw-updater]=PawUpdater [monitor]=Monitor)
 for name in "${!APP_ICONS[@]}"; do
   src="$(ls "$ART/icons/$name".* | head -n1)"
   id="org.uwubuntu.${APP_ICONS[$name]}"
@@ -60,7 +60,8 @@ log "Building .debs"
 # Sources may come from a Windows/WSL mount where everything is 0777.
 find "$PKG" "$APPS" "$LIVE" -type d -exec chmod 0755 {} +
 find "$PKG" "$APPS" "$LIVE" -type f -exec chmod 0644 {} +
-chmod 0755 "$PKG"/DEBIAN/{preinst,postinst,prerm,postrm} "$PKG"/usr/bin/* "$PKG"/etc/update-motd.d/*
+chmod 0755 "$PKG"/DEBIAN/{preinst,postinst,prerm,postrm} "$PKG"/usr/bin/* "$PKG"/etc/update-motd.d/* \
+           "$PKG"/usr/lib/uwubuntu/rename-apps
 chmod 0755 "$APPS"/usr/bin/* "$APPS"/usr/lib/uwubuntu/paw-updater-helper
 chmod 0755 "$LIVE"/usr/lib/uwubuntu/installer/*
 for dir in "$PKG" "$APPS"; do

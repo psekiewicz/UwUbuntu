@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=UwU Monitor
+Comment=See what your computer is up to
+Exec=uwu-monitor
+Icon=org.uwubuntu.Monitor
+Terminal=false
+Categories=GNOME;GTK;System;Monitor;
+Keywords=system;monitor;cpu;memory;ram;processes;task;manager;
+StartupNotify=true

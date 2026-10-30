@@ -141,10 +141,10 @@ class WelcomeWindow(Adw.ApplicationWindow):
         return ui.status_page(
             "Tricks of the den",
             "Press Super to see all your windows and search for apps.\n"
-            "Ctrl+Alt+T opens kitty, your terminal. Try uwufetch in it!\n"
+            "Ctrl+Alt+T opens UwTerminal. Try uwufetch in it!\n"
             "Drag a window to a screen edge (or Super+arrow keys) to snap it.\n\n"
-            "Windows wobble, burn and get sucked into the dock when you minimise. "
-            "Too much? Tone it down in UwU Settings.",
+            "Windows get sucked into the dock when you minimise. Want more wiggle "
+            "(wobbly windows, fiery effects)? Switch it on in UwU Settings → Animations.",
             icon_name="input-keyboard-symbolic")
 
     def _apps_page(self):
@@ -182,7 +182,7 @@ class WelcomeWindow(Adw.ApplicationWindow):
         self.runner = ui.CommandRunner(lambda line: None, self._apps_installed)
         clamp = Adw.Clamp(maximum_size=520, child=box)
         return ui.status_page("Grab some apps",
-                              "Straight from Flathub. GNOME Software has thousands more.",
+                              "Straight from Flathub. UwCenter has thousands more.",
                               icon_name="system-software-install-symbolic", child=clamp)
 
     def _install_apps(self, *_):
@@ -206,7 +206,7 @@ class WelcomeWindow(Adw.ApplicationWindow):
                     check.set_sensitive(False)
         self.toasts.add_toast(Adw.Toast(
             title="All installed! Find them in your apps (^w^)" if ok
-            else "Something went wrong installing. Try GNOME Software?"))
+            else "Something went wrong installing. Try UwCenter?"))
 
     def _done_page(self):
         self.show_at_login = Gtk.Switch(active=False, valign=Gtk.Align.CENTER)

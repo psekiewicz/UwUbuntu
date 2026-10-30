@@ -184,7 +184,8 @@ for tool in rsync mount umount mkfs.ext4 mkfs.fat sfdisk efibootmgr grub-install
 done
 # Fail the build (rather than ship broken apps) if GTK/libadwaita won't load
 python3 -c 'import sys; sys.path.insert(0, "/usr/lib/uwubuntu"); import uwubuntu_ui' \
-  && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater
+  && python3 -m py_compile /usr/bin/uwu-welcome /usr/bin/uwu-settings /usr/bin/paw-updater /usr/bin/uwu-monitor \
+  && python3 -c "import psutil"
 # The image boots UEFI machines with grub-efi-amd64 (installed above). For
 # BIOS installs carry grub-pc plus anything it needs that the image lacks;
 # post-install.sh swaps it in with apt, offline.

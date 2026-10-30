@@ -67,7 +67,7 @@ Presentation {
     }
     PawSlide {
         heading: "Apps for every critter"
-        body: "GNOME Software comes with Flathub built in, so Krita, Inkscape, Blender, Discord, Telegram and thousands more are a click away."
+        body: "UwCenter comes with Flathub built in, so Krita, Inkscape, Blender, Discord, Telegram and thousands more are a click away."
     }
     PawSlide {
         heading: "Terminal toys"
@@ -75,7 +75,7 @@ Presentation {
     }
     PawSlide {
         heading: "Make it yours"
-        body: "Pick an accent colour in Settings → Appearance, swap wallpapers, and tweak everything else with GNOME Tweaks and Extension Manager."
+        body: "UwU Settings has it all in one place: accent colours, wallpapers, animations, your terminal prompt, and every system setting."
     }
 
     function onActivate() { presentation.currentSlide = 0; }

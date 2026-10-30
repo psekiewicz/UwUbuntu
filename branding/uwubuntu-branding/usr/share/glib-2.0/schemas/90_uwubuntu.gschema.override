@@ -55,13 +55,15 @@ gtk-theme='Yaru-dark'
 icon-theme='Yaru'
 
 # --- Shell: dock favourites + animation extensions ------------------------------
+# Subtle by default: magic lamp + blur. Burn My Windows and wobbly windows are
+# installed too and can be switched on in UwU Settings → Animations.
 [org.gnome.shell]
 favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'kitty.desktop', 'org.gnome.Software.desktop', 'org.uwubuntu.Settings.desktop']
-enabled-extensions=['burn-my-windows@schneegans.github.com', 'compiz-windows-effect@hermes83.github.com', 'compiz-alike-magic-lamp-effect@hermes83.github.com', 'blur-my-shell@aunetx']
+enabled-extensions=['compiz-alike-magic-lamp-effect@hermes83.github.com', 'blur-my-shell@aunetx']
 
 [org.gnome.shell:ubuntu]
 favorite-apps=['uwubuntu-installer.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'kitty.desktop', 'org.gnome.Software.desktop', 'org.uwubuntu.Settings.desktop']
-enabled-extensions=['burn-my-windows@schneegans.github.com', 'compiz-windows-effect@hermes83.github.com', 'compiz-alike-magic-lamp-effect@hermes83.github.com', 'blur-my-shell@aunetx']
+enabled-extensions=['compiz-alike-magic-lamp-effect@hermes83.github.com', 'blur-my-shell@aunetx']
 
 [org.gnome.shell.extensions.dash-to-dock]
 dock-position='BOTTOM'

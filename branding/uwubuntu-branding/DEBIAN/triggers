@@ -1,0 +1,2 @@
+# Re-run rename-apps when any package changes an app launcher
+interest-noawait /usr/share/applications

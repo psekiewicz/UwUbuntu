@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+"""UwU Monitor: what your computer is up to, at a glance.
+
+CPU, memory, disk and network meters plus the hungriest processes, refreshed
+every two seconds. Your own processes can be ended from the list.
+"""
+
+import getpass
+import sys
+
+import psutil
+
+sys.path.insert(0, "/usr/lib/uwubuntu")
+import uwubuntu_ui as ui  # noqa: E402,F401  (sets up Gtk/Adw versions)
+from uwubuntu_ui import Adw, Gio, GLib, Gtk  # noqa: E402
+
+APP_ID = "org.uwubuntu.Monitor"
+REFRESH_SECONDS = 2
+TOP_PROCESSES = 8
+ME = getpass.getuser()
+
+
+def human_bytes(n):
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if abs(n) < 1024 or unit == "TB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+
+
+def mood(cpu, mem):
+    if mem >= 90:
+        return "Running low on memowy, close something? (>_<)"
+    if cpu < 25:
+        return "Purring along (=^·ω·^=)"
+    if cpu < 60:
+        return "Busy little critter"
+    if cpu < 85:
+        return "Working hard! >w<"
+    return "Zoomies! Everything's going full speed"
+
+
+class Meter(Gtk.Box):
+    """A card with a title, a big value, a level bar and a detail line."""
+
+    def __init__(self, title, icon_name):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                         hexpand=True, margin_start=6, margin_end=6, margin_top=6, margin_bottom=6)
+        self.add_css_class("card")
+        inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                        margin_start=16, margin_end=16, margin_top=14, margin_bottom=14)
+        head = Gtk.Box(spacing=8)
+        head.append(Gtk.Image(icon_name=icon_name))
+        label = Gtk.Label(label=title, xalign=0)
+        label.add_css_class("heading")
+        head.append(label)
+        self.value = Gtk.Label(xalign=0)
+        self.value.add_css_class("title-1")
+        self.bar = Gtk.LevelBar(min_value=0, max_value=1)
+        self.detail = Gtk.Label(xalign=0, wrap=True)
+        self.detail.add_css_class("dim-label")
+        self.detail.add_css_class("caption")
+        for widget in (head, self.value, self.bar, self.detail):
+            inner.append(widget)
+        self.append(inner)
+
+    def update(self, value, fraction, detail):
+        self.value.set_label(value)
+        self.bar.set_value(max(0.0, min(1.0, fraction)))
+        self.detail.set_label(detail)
+
+
+class MonitorWindow(Adw.ApplicationWindow):
+    def __init__(self, app):
+        super().__init__(application=app, title="UwU Monitor")
+        self.set_default_size(760, 720)
+
+        self.mood = Gtk.Label(margin_top=12)
+        self.mood.add_css_class("title-3")
+
+        self.cpu = Meter("CPU", "computer-symbolic")
+        self.mem = Meter("Memory", "drive-multidisk-symbolic")
+        self.disk = Meter("Disk", "drive-harddisk-symbolic")
+        self.net = Meter("Network", "network-transmit-receive-symbolic")
+        grid = Gtk.Grid(column_homogeneous=True, margin_start=12, margin_end=12)
+        grid.attach(self.cpu, 0, 0, 1, 1)
+        grid.attach(self.mem, 1, 0, 1, 1)
+        grid.attach(self.disk, 0, 1, 1, 1)
+        grid.attach(self.net, 1, 1, 1, 1)
+
+        heading = Gtk.Label(label="Hungriest processes", xalign=0,
+                            margin_start=18, margin_top=12)
+        heading.add_css_class("heading")
+        self.processes = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                                     margin_start=18, margin_end=18, margin_bottom=18)
+        self.processes.add_css_class("boxed-list")
+
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        for widget in (self.mood, grid, heading, self.processes):
+            body.append(widget)
+        scroller = Gtk.ScrolledWindow(child=body, vexpand=True,
+                                      hscrollbar_policy=Gtk.PolicyType.NEVER)
+
+        toolbar = Adw.ToolbarView(content=scroller)
+        toolbar.add_top_bar(Adw.HeaderBar())
+        self.toasts = Adw.ToastOverlay(child=toolbar)
+        self.set_content(self.toasts)
+
+        self.last_net = psutil.net_io_counters()
+        psutil.cpu_percent(None)  # prime: the first real reading is a delta
+        for proc in psutil.process_iter():
+            try:
+                proc.cpu_percent(None)
+            except psutil.Error:
+                pass
+        self.refresh()
+        self.timer = GLib.timeout_add_seconds(REFRESH_SECONDS, self.refresh)
+        self.connect("close-request", self._on_close)
+
+    def _on_close(self, *_):
+        GLib.source_remove(self.timer)
+        return False
+
+    def refresh(self):
+        cpu = psutil.cpu_percent(None)
+        freq = psutil.cpu_freq()
+        temp = self._cpu_temperature()
+        cpu_detail = f"{psutil.cpu_count()} threads"
+        if freq:
+            cpu_detail += f" · {freq.current / 1000:.1f} GHz"
+        if temp is not None:
+            cpu_detail += f" · {temp:.0f} °C"
+        self.cpu.update(f"{cpu:.0f}%", cpu / 100, cpu_detail)
+
+        mem = psutil.virtual_memory()
+        swap = psutil.swap_memory()
+        self.mem.update(f"{mem.percent:.0f}%", mem.percent / 100,
+                        f"{human_bytes(mem.used)} of {human_bytes(mem.total)}"
+                        + (f" · swap {human_bytes(swap.used)}" if swap.total else ""))
+
+        disk = psutil.disk_usage("/")
+        self.disk.update(f"{disk.percent:.0f}%", disk.percent / 100,
+                         f"{human_bytes(disk.free)} free of {human_bytes(disk.total)}")
+
+        net = psutil.net_io_counters()
+        down = (net.bytes_recv - self.last_net.bytes_recv) / REFRESH_SECONDS
+        up = (net.bytes_sent - self.last_net.bytes_sent) / REFRESH_SECONDS
+        self.last_net = net
+        self.net.update(f"↓ {human_bytes(down)}/s", min(down / (10 * 1024 * 1024), 1.0),
+                        f"↑ {human_bytes(up)}/s")
+
+        self.mood.set_label(mood(cpu, mem.percent))
+        self._refresh_processes()
+        return GLib.SOURCE_CONTINUE
+
+    @staticmethod
+    def _cpu_temperature():
+        try:
+            sensors = psutil.sensors_temperatures()
+        except (AttributeError, OSError):
+            return None
+        for name in ("coretemp", "k10temp", "zenpower", "cpu_thermal", "acpitz"):
+            if sensors.get(name):
+                return sensors[name][0].current
+        return None
+
+    def _refresh_processes(self):
+        procs = []
+        for proc in psutil.process_iter(["pid", "name", "username", "memory_info"]):
+            try:
+                cpu = proc.cpu_percent(None)
+            except psutil.Error:
+                continue
+            info = proc.info
+            if not info.get("memory_info"):
+                continue
+            procs.append((cpu, info["memory_info"].rss, info, proc))
+        procs.sort(key=lambda p: (p[0], p[1]), reverse=True)
+
+        self.processes.remove_all()
+        for cpu, rss, info, proc in procs[:TOP_PROCESSES]:
+            row = Adw.ActionRow(title=GLib.markup_escape_text(info["name"] or "?"),
+                                subtitle=f"CPU {cpu:.0f}% · {human_bytes(rss)}"
+                                         f" · {info.get('username') or '?'}")
+            if info.get("username") == ME:
+                end = Gtk.Button(label="End", valign=Gtk.Align.CENTER)
+                end.add_css_class("flat")
+                end.connect("clicked", self._end_process, proc, info["name"])
+                row.add_suffix(end)
+            self.processes.append(row)
+
+    def _end_process(self, _button, proc, name):
+        try:
+            proc.terminate()
+            message = f"Asked {name} to stop"
+        except psutil.Error as err:
+            message = f"Couldn't stop {name}: {err}"
+        self.toasts.add_toast(Adw.Toast(title=message))
+
+
+class MonitorApp(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+
+    def do_activate(self):
+        window = self.get_active_window() or MonitorWindow(self)
+        window.present()
+
+
+if __name__ == "__main__":
+    sys.exit(MonitorApp().run(sys.argv))

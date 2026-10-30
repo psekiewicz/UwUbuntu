@@ -4,4 +4,12 @@ set -e
 if [ "$1" = remove ]; then
     update-alternatives --remove default.plymouth \
         /usr/share/plymouth/themes/uwubuntu/uwubuntu.plymouth || true
+
+    # Give stock apps their own launchers (and names) back
+    sed -e 's/#.*//' /usr/share/uwubuntu/app-names.list | while read -r id name; do
+        [ -n "$id" ] || continue
+        rm -f "/usr/share/applications/$id"
+        dpkg-divert --package uwubuntu-branding --remove --rename \
+            --divert "/usr/share/applications/$id.ubuntu" "/usr/share/applications/$id" >/dev/null
+    done
 fi

@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
-"""UwU Settings: UwUbuntu's own tweaks (look, animations, terminal, startup)."""
+"""UwU Settings: the one place to set up UwUbuntu.
 
+UwUbuntu's own options (look, animations, terminal, startup) live here; for
+system settings it groups GNOME Settings' panels by topic and opens the right
+one, and it links to the other UwUbuntu tools.
+"""
+
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +23,61 @@ FETCH_BLOCK = (f"{FETCH_BEGIN}\n"
                "if [ -n \"$PS1\" ] && command -v uwufetch >/dev/null; then uwufetch; fi\n"
                f"{FETCH_END}\n")
 AUTO_WALLPAPER = "Automatic (light + dark)"
+STARSHIP_TOML = Path(GLib.get_user_config_dir()) / "starship.toml"
+STARSHIP_CHOICE = ui.CONFIG_DIR / "starship-preset"
+DEFAULT_PRESET = "pastel-powerline"
+# (starship preset name, label); all ship with starship itself
+STARSHIP_PRESETS = [
+    ("pastel-powerline", "Pastel Powerline (UwUbuntu default)"),
+    ("tokyo-night", "Tokyo Night"),
+    ("gruvbox-rainbow", "Gruvbox Rainbow"),
+    ("jetpack", "Jetpack"),
+    ("nerd-font-symbols", "Nerd Font symbols"),
+    ("bracketed-segments", "Bracketed segments"),
+    ("plain-text-symbols", "Plain text (no icons)"),
+]
+
+# System pages: (page id, title, icon, [(GNOME Settings panel, row title, subtitle)])
+SYSTEM_PAGES = [
+    ("network", "Network & Bluetooth", "network-wireless-symbolic", [
+        ("wifi", "Wi-Fi", "Wireless networks"),
+        ("network", "Wired & VPN", "Cables, VPNs and proxies"),
+        ("bluetooth", "Bluetooth", "Headphones, mice, controllers"),
+    ]),
+    ("display", "Display & Sound", "video-display-symbolic", [
+        ("display", "Displays", "Resolution, scaling, night light"),
+        ("sound", "Sound", "Speakers, microphones, volume"),
+        ("power", "Power", "Battery, sleep and power modes"),
+    ]),
+    ("apps", "Apps & Notifications", "view-app-grid-symbolic", [
+        ("applications", "Apps", "Permissions and default apps"),
+        ("notifications", "Notifications", "Banners and do-not-disturb"),
+        ("search", "Search", "What the overview searches"),
+        ("multitasking", "Multitasking", "Workspaces and hot corner"),
+    ]),
+    ("devices", "Devices", "input-keyboard-symbolic", [
+        ("keyboard", "Keyboard", "Layouts and shortcuts"),
+        ("mouse", "Mouse & Touchpad", "Speed and gestures"),
+        ("printers", "Printers", "Add and manage printers"),
+    ]),
+    ("privacy", "Privacy & Accounts", "preferences-system-privacy-symbolic", [
+        ("privacy", "Privacy & Security", "Screen lock, location, file history"),
+        ("online-accounts", "Online Accounts", "Google, Microsoft, Nextcloud…"),
+        ("users", "Users", "Accounts and passwords"),
+    ]),
+    ("system", "System", "computer-symbolic", [
+        ("system", "System", "Date & time, language, about this PC"),
+        ("universal-access", "Accessibility", "Seeing, hearing, typing"),
+    ]),
+]
+
+# Tools: (title, subtitle, icon, desktop file id)
+TOOLS = [
+    ("Paw Updater", "System and app updates", "org.uwubuntu.PawUpdater", "org.uwubuntu.PawUpdater.desktop"),
+    ("UwU Monitor", "What your computer is up to", "org.uwubuntu.Monitor", "org.uwubuntu.Monitor.desktop"),
+    ("UwCenter", "Get more apps", "org.gnome.Software", "org.gnome.Software.desktop"),
+    ("UwU Welcome", "The first-run tour", "org.uwubuntu.Welcome", "org.uwubuntu.Welcome.desktop"),
+]
 
 
 def fetch_greeting_enabled():
@@ -41,31 +102,107 @@ def set_fetch_greeting(enabled):
     BASHRC.write_text(text, encoding="utf-8")
 
 
+def current_preset():
+    try:
+        name = STARSHIP_CHOICE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return DEFAULT_PRESET
+    return name or DEFAULT_PRESET
+
+
 class SettingsWindow(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="UwU Settings")
-        self.set_default_size(640, 720)
+        self.set_default_size(980, 700)
         self.interface = ui.settings_for("org.gnome.desktop.interface")
         self.background = ui.settings_for("org.gnome.desktop.background")
         self.shell = ui.settings_for("org.gnome.shell", "enabled-extensions")
 
-        page = Adw.PreferencesPage()
-        page.add(self._look_group())
-        page.add(self._animation_group())
-        page.add(self._terminal_group())
-        page.add(self._startup_group())
+        # (id, title, icon, section, page widget)
+        self.pages = [
+            ("look", "Look", "applications-graphics-symbolic", "UwUbuntu", self._page(self._look_group())),
+            ("animations", "Animations", "starred-symbolic", "UwUbuntu", self._page(self._animation_group())),
+            ("terminal", "Terminal", "utilities-terminal-symbolic", "UwUbuntu",
+             self._page(self._terminal_group(), self._prompt_group())),
+            ("startup", "Startup", "system-run-symbolic", "UwUbuntu", self._page(self._startup_group())),
+        ]
+        for page_id, title, icon, panels in SYSTEM_PAGES:
+            self.pages.append((page_id, title, icon, "System", self._page(self._panel_group(title, panels))))
+        self.pages.append(("tools", "Tools", "applications-utilities-symbolic", "UwUbuntu apps",
+                           self._page(self._tools_group())))
+
+        self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.CROSSFADE)
+        for page_id, _title, _icon, _section, widget in self.pages:
+            self.stack.add_named(widget, page_id)
+
+        self.sidebar = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
+        self.sidebar.add_css_class("navigation-sidebar")
+        self.sidebar.set_header_func(self._sidebar_header)
+        for page_id, title, icon, section, _widget in self.pages:
+            box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6, margin_start=6)
+            box.append(Gtk.Image(icon_name=icon))
+            box.append(Gtk.Label(label=title, xalign=0))
+            row = Gtk.ListBoxRow(child=box)
+            row.page_id, row.page_title, row.section = page_id, title, section
+            self.sidebar.append(row)
+        self.sidebar.connect("row-activated", self._on_row_activated)
 
         about = Gtk.Button(icon_name="help-about-symbolic", tooltip_text="About UwUbuntu")
         about.connect("clicked", self._show_about)
-        header = Adw.HeaderBar()
-        header.pack_end(about)
+        sidebar_header = Adw.HeaderBar()
+        sidebar_header.pack_end(about)
+        sidebar_view = Adw.ToolbarView(content=Gtk.ScrolledWindow(child=self.sidebar,
+                                                                  hscrollbar_policy=Gtk.PolicyType.NEVER))
+        sidebar_view.add_top_bar(sidebar_header)
 
-        toolbar = Adw.ToolbarView(content=page)
-        toolbar.add_top_bar(header)
-        self.toasts = Adw.ToastOverlay(child=toolbar)
+        content_view = Adw.ToolbarView(content=self.stack)
+        content_view.add_top_bar(Adw.HeaderBar())
+        self.content_page = Adw.NavigationPage(title="Look", child=content_view)
+
+        self.split = Adw.NavigationSplitView(
+            sidebar=Adw.NavigationPage(title="UwU Settings", child=sidebar_view),
+            content=self.content_page)
+        breakpoint = Adw.Breakpoint.new(Adw.BreakpointCondition.parse("max-width: 640sp"))
+        breakpoint.add_setter(self.split, "collapsed", True)
+        self.add_breakpoint(breakpoint)
+
+        self.toasts = Adw.ToastOverlay(child=self.split)
         self.set_content(self.toasts)
+        self.sidebar.select_row(self.sidebar.get_row_at_index(0))
 
-    # --- Look ------------------------------------------------------------------
+    # --- layout helpers -----------------------------------------------------------
+    @staticmethod
+    def _page(*groups):
+        page = Adw.PreferencesPage()
+        for group in groups:
+            page.add(group)
+        return page
+
+    @staticmethod
+    def _sidebar_header(row, before):
+        if before is None or before.section != row.section:
+            label = Gtk.Label(label=row.section, xalign=0, margin_start=12,
+                              margin_top=12 if before else 6, margin_bottom=4)
+            label.add_css_class("heading")
+            label.add_css_class("dim-label")
+            row.set_header(label)
+        else:
+            row.set_header(None)
+
+    def _on_row_activated(self, _listbox, row):
+        self.stack.set_visible_child_name(row.page_id)
+        self.content_page.set_title(row.page_title)
+        self.split.set_show_content(True)
+
+    @staticmethod
+    def _link_row(title, subtitle, icon_name=None):
+        row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True)
+        if icon_name:
+            row.add_prefix(Gtk.Image(icon_name=icon_name, pixel_size=32))
+        row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
+        return row
+
+    # --- Look -----------------------------------------------------------------------
     def _look_group(self):
         group = Adw.PreferencesGroup(title="Look", description="Colours and wallpaper")
         if self.interface:
@@ -114,10 +251,11 @@ class SettingsWindow(Adw.ApplicationWindow):
             self.background.set_string("picture-uri", uri)
             self.background.set_string("picture-uri-dark", uri)
 
-    # --- Animations ------------------------------------------------------------
+    # --- Animations -----------------------------------------------------------------
     def _animation_group(self):
-        group = Adw.PreferencesGroup(title="Animations",
-                                     description="Extra wiggle for the GNOME desktop")
+        group = Adw.PreferencesGroup(
+            title="Animations",
+            description="Magic lamp and blur are on by default; the rest are there if you want more wiggle")
         if self.interface and self.interface.props.settings_schema.has_key("enable-animations"):
             master = Adw.SwitchRow(title="Animations", subtitle="Turn off for a calmer, faster desktop")
             self.interface.bind("enable-animations", master, "active", Gio.SettingsBindFlags.DEFAULT)
@@ -159,7 +297,7 @@ class SettingsWindow(Adw.ApplicationWindow):
         except OSError:
             self.toasts.add_toast(Adw.Toast(title="Extension settings need the GNOME session"))
 
-    # --- Terminal ----------------------------------------------------------------
+    # --- Terminal -------------------------------------------------------------------
     def _terminal_group(self):
         group = Adw.PreferencesGroup(title="Terminal")
         greet = Adw.SwitchRow(title="Greet me with uwufetch",
@@ -168,23 +306,62 @@ class SettingsWindow(Adw.ApplicationWindow):
         greet.connect("notify::active", lambda row, _: set_fetch_greeting(row.get_active()))
         group.add(greet)
 
-        kitty = Adw.ActionRow(title="kitty theme", subtitle="Edit ~/.config/kitty/kitty.conf",
-                              activatable=True)
-        kitty.add_suffix(Gtk.Image(icon_name="document-edit-symbolic"))
-        kitty.connect("activated", self._edit_kitty_config)
+        kitty = self._link_row("UwTerminal look", "Edit ~/.config/kitty/kitty.conf")
+        kitty.connect("activated", lambda *_: self._edit_config(
+            Path(GLib.get_user_config_dir()) / "kitty" / "kitty.conf",
+            Path("/etc/skel/.config/kitty/kitty.conf")))
         group.add(kitty)
         return group
 
-    def _edit_kitty_config(self, *_):
-        config = Path(GLib.get_user_config_dir()) / "kitty" / "kitty.conf"
+    def _prompt_group(self):
+        group = Adw.PreferencesGroup(title="Prompt",
+                                     description="Starship, the line you type commands after")
+        if not shutil.which("starship"):
+            group.add(Adw.ActionRow(title="Starship isn't installed"))
+            return group
+        self.preset_names = [name for name, _label in STARSHIP_PRESETS]
+        style = Adw.ComboRow(title="Style",
+                             subtitle="Replaces ~/.config/starship.toml (the old one is kept as .bak)",
+                             model=Gtk.StringList.new([label for _name, label in STARSHIP_PRESETS]))
+        preset = current_preset()
+        style.set_selected(self.preset_names.index(preset) if preset in self.preset_names else 0)
+        style.connect("notify::selected", self._on_preset)
+        group.add(style)
+
+        edit = self._link_row("Edit the prompt by hand", "Open ~/.config/starship.toml")
+        edit.connect("activated", lambda *_: self._edit_config(STARSHIP_TOML, None))
+        group.add(edit)
+        return group
+
+    def _on_preset(self, row, _pspec):
+        name = self.preset_names[row.get_selected()]
+        if name == current_preset() and STARSHIP_TOML.exists():
+            return
+        if STARSHIP_TOML.exists():
+            shutil.copy2(STARSHIP_TOML, STARSHIP_TOML.with_suffix(".toml.bak"))
+        STARSHIP_TOML.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(["starship", "preset", name, "-o", str(STARSHIP_TOML)],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            ui.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+            STARSHIP_CHOICE.write_text(name + "\n", encoding="utf-8")
+            message = "New prompt style! Open a new terminal to see it"
+        else:
+            message = "Couldn't switch the prompt style"
+        self.toasts.add_toast(Adw.Toast(title=message))
+
+    @staticmethod
+    def _edit_config(config, default):
         if not config.exists():
-            # start from the UwUbuntu defaults so nothing changes until edited
             config.parent.mkdir(parents=True, exist_ok=True)
-            config.write_text(Path("/etc/skel/.config/kitty/kitty.conf").read_text(encoding="utf-8"),
-                              encoding="utf-8")
+            # start from the UwUbuntu default so nothing changes until edited
+            if default and default.exists():
+                shutil.copy(default, config)
+            else:
+                config.touch()
         Gio.AppInfo.launch_default_for_uri(GLib.filename_to_uri(str(config)), None)
 
-    # --- Startup ---------------------------------------------------------------
+    # --- Startup --------------------------------------------------------------------
     def _startup_group(self):
         group = Adw.PreferencesGroup(title="Startup")
         welcome = Adw.SwitchRow(title="Show UwU Welcome at login")
@@ -192,11 +369,34 @@ class SettingsWindow(Adw.ApplicationWindow):
         welcome.connect("notify::active",
                         lambda row, _: ui.set_welcome_shows_at_login(row.get_active()))
         group.add(welcome)
+        return group
 
-        tour = Adw.ButtonRow(title="Open UwU Welcome now") if hasattr(Adw, "ButtonRow") \
-            else Adw.ActionRow(title="Open UwU Welcome now", activatable=True)
-        tour.connect("activated", lambda *_: subprocess.Popen(["uwu-welcome"]))
-        group.add(tour)
+    # --- System (GNOME Settings panels) ---------------------------------------------
+    def _panel_group(self, title, panels):
+        group = Adw.PreferencesGroup(title=title,
+                                     description="Opens the matching page of the system settings")
+        for panel, row_title, subtitle in panels:
+            row = self._link_row(row_title, subtitle)
+            row.connect("activated", self._open_panel, panel)
+            group.add(row)
+        return group
+
+    def _open_panel(self, _row, panel):
+        try:
+            subprocess.Popen(["gnome-control-center", panel])
+        except OSError:
+            self.toasts.add_toast(Adw.Toast(title="System settings aren't installed"))
+
+    # --- Tools ----------------------------------------------------------------------
+    def _tools_group(self):
+        group = Adw.PreferencesGroup(title="UwUbuntu apps")
+        for title, subtitle, icon, desktop_id in TOOLS:
+            app = Gio.DesktopAppInfo.new(desktop_id)
+            if app is None:
+                continue
+            row = self._link_row(title, subtitle, icon)
+            row.connect("activated", lambda _r, a=app: a.launch([], None))
+            group.add(row)
         return group
 
     def _show_about(self, *_):
