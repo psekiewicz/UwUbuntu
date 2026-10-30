@@ -73,7 +73,7 @@ stage_customize() {
   cp -L /etc/resolv.conf "$CHROOT/tmp/uwubuntu/host-resolv.conf"
 
   local var envs=(HOME=/root PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin)
-  for var in "${TEMPLATE_VARS[@]}" UBUNTU_MIRROR UBUNTU_SECURITY_MIRROR; do
+  for var in "${TEMPLATE_VARS[@]}" UBUNTU_MIRROR UBUNTU_SECURITY_MIRROR NERD_FONT_VERSION; do
     envs+=("$var=${!var}")
   done
   chroot "$CHROOT" /usr/bin/env -i "${envs[@]}" bash /tmp/uwubuntu/chroot-setup.sh

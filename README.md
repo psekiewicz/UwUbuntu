@@ -19,7 +19,7 @@ five years of upstream updates.
 |---|---|
 | Base | Ubuntu 26.04 LTS (switch to 26.10 "Stonking Stingray" in `config/uwubuntu.conf`) |
 | Desktop | GNOME: dock at the bottom, dark mode + orange accent, wobbly windows, magic-lamp minimise, Burn My Windows effects, Blur My Shell |
-| Terminal | kitty with the "Ember" colour theme and a cursor trail |
+| Terminal | kitty with the "Ember" colour theme and a cursor trail, JetBrainsMono Nerd Font, and a Starship prompt using the Pastel Powerline preset (`~/.config/starship.toml`) |
 | Our own apps | **UwU Welcome** (first-run tour + Flathub app picker), **UwU Settings** (look, animations, terminal, startup), **Paw Updater** (system + Flatpak updates) |
 | No Canonical extras | No snap, Ubuntu Pro, Update Manager, Apport or telemetry |
 | Installer | Calamares, with a custom slideshow and branding |

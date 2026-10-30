@@ -105,6 +105,31 @@ if [[ -x /usr/bin/kitty ]]; then
     || warn "couldn't make kitty the x-terminal-emulator"
 fi
 
+log "Nerd Font ($NERD_FONT_VERSION) + Starship prompt"
+# JetBrainsMono Nerd Font, system-wide; kitty's default font (etc/skel kitty.conf).
+font_dir=/usr/share/fonts/truetype/jetbrains-mono-nerd
+rm -rf "$font_dir"
+mkdir -p "$font_dir"
+curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/$NERD_FONT_VERSION/JetBrainsMono.tar.xz" \
+  | tar -xJ -C "$font_dir" --wildcards '*.ttf'
+chmod 0644 "$font_dir"/*.ttf
+fc-cache -f
+fc-list | grep -q 'JetBrainsMono Nerd Font' || { warn "JetBrainsMono Nerd Font didn't install"; exit 1; }
+# Starship with the pastel-powerline preset for every new user (and the live user)
+command -v starship >/dev/null || { warn "starship isn't installed (see config/packages.list)"; exit 1; }
+mkdir -p /etc/skel/.config
+starship preset pastel-powerline -o /etc/skel/.config/starship.toml
+if ! grep -q 'uwubuntu: starship prompt' /etc/skel/.bashrc; then
+  cat >> /etc/skel/.bashrc <<'EOF'
+
+# >>> uwubuntu: starship prompt >>>
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi
+# <<< uwubuntu: starship prompt <<<
+EOF
+fi
+
 log "Animation extensions from extensions.gnome.org"
 shell_major="$(dpkg-query -W -f='${Version}' gnome-shell | cut -d. -f1)"
 mapfile -t extensions < <(read_list "$IN/gnome-extensions.list")

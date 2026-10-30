@@ -5,6 +5,7 @@
 # Terminal: kitty is the default (see packages-remove.list for Ptyxis)
 kitty
 xdg-terminal-exec
+starship          # prompt; pastel-powerline preset + Nerd Font set up in chroot-setup.sh
 
 # App store with Flatpak/Flathub instead of the Snap store
 gnome-software
