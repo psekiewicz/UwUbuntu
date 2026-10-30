@@ -12,16 +12,18 @@ terminal_output gfxterm
 set theme=/boot/grub/themes/uwubuntu/theme.txt
 export theme
 
+# noprompt: skip casper's "Please remove the installation medium, then press ENTER" on
+# shutdown/reboot (people boot from USB, which needs no ejecting).
 menuentry "Try or install @DISTRO_NAME@" --class uwubuntu {
-    linux /casper/vmlinuz boot=casper quiet splash ---
+    linux /casper/vmlinuz boot=casper noprompt quiet splash ---
     initrd /casper/initrd
 }
 menuentry "@DISTRO_NAME@ (safe graphics)" --class uwubuntu {
-    linux /casper/vmlinuz boot=casper nomodeset quiet splash ---
+    linux /casper/vmlinuz boot=casper noprompt nomodeset quiet splash ---
     initrd /casper/initrd
 }
 menuentry "@DISTRO_NAME@ (copy to RAM, then boot)" --class uwubuntu {
-    linux /casper/vmlinuz boot=casper toram quiet splash ---
+    linux /casper/vmlinuz boot=casper noprompt toram quiet splash ---
     initrd /casper/initrd
 }
 if [ "$grub_platform" = "efi" ]; then

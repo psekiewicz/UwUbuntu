@@ -18,6 +18,11 @@ gnome-shell-extension-manager
 gnome-shell-extension-appindicator
 unzip
 
+# Developer basics
+git
+curl
+build-essential
+
 # Terminal fun
 fastfetch
 cowsay

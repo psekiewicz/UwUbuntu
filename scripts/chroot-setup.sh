@@ -315,7 +315,11 @@ log "Cleaning up"
 "${APT[@]}" autoremove --purge
 apt-mark unhold "${PROTECTED[@]}"   # held packages would never get upgrades
 apt-get clean
-rm -rf /var/lib/apt/lists/* /var/tmp/* /root/.bash_history
+# Keep apt's package lists: without them `apt install <anything>` finds nothing until the
+# user runs `apt update`. Refresh them right before the image is closed.
+fix_dns
+apt-get update || warn "couldn't refresh the package lists"
+rm -rf /var/tmp/* /root/.bash_history
 : > /etc/machine-id
 rm -f /var/lib/dbus/machine-id /usr/sbin/policy-rc.d
 ln -sf ../run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
