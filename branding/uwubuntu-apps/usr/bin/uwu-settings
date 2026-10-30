@@ -193,6 +193,9 @@ class SettingsWindow(Adw.ApplicationWindow):
         self.stack.set_visible_child_name(row.page_id)
         self.content_page.set_title(row.page_title)
         self.split.set_show_content(True)
+        # Into the page, so keyboard users can reach its rows (Tab only cycles the sidebar).
+        page = self.stack.get_visible_child()
+        GLib.idle_add(lambda: page.child_focus(Gtk.DirectionType.TAB_FORWARD) and False)
 
     @staticmethod
     def _link_row(title, subtitle, icon_name=None):
