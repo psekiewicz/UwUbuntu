@@ -114,7 +114,11 @@ curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/$NERD_FONT
   | tar -xJ -C "$font_dir" --wildcards '*.ttf'
 chmod 0644 "$font_dir"/*.ttf
 fc-cache -f
-fc-list | grep -q 'JetBrainsMono Nerd Font' || { warn "JetBrainsMono Nerd Font didn't install"; exit 1; }
+# grep -c, not -q: -q stops reading early, fc-list dies of SIGPIPE, and with
+# pipefail a successful match reads as a failure.
+nerd_faces="$(fc-list : family | grep -c 'JetBrainsMono Nerd Font' || true)"
+(( nerd_faces > 0 )) || { warn "JetBrainsMono Nerd Font didn't install"; exit 1; }
+log "  $nerd_faces Nerd Font faces installed"
 # Starship with the pastel-powerline preset for every new user (and the live user)
 command -v starship >/dev/null || { warn "starship isn't installed (see config/packages.list)"; exit 1; }
 mkdir -p /etc/skel/.config
