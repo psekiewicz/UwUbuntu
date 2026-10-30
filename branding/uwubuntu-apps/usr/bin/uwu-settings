@@ -28,7 +28,7 @@ STARSHIP_CHOICE = ui.CONFIG_DIR / "starship-preset"
 DEFAULT_PRESET = "pastel-powerline"
 # (starship preset name, label); all ship with starship itself
 STARSHIP_PRESETS = [
-    ("pastel-powerline", "Pastel Powerline (UwUbuntu default)"),
+    ("pastel-powerline", "Pastel Powerline"),
     ("tokyo-night", "Tokyo Night"),
     ("gruvbox-rainbow", "Gruvbox Rainbow"),
     ("jetpack", "Jetpack"),
@@ -196,7 +196,8 @@ class SettingsWindow(Adw.ApplicationWindow):
 
     @staticmethod
     def _link_row(title, subtitle, icon_name=None):
-        row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True)
+        # Plain text, not markup: titles like "Mouse & Touchpad" otherwise vanish.
+        row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True, use_markup=False)
         if icon_name:
             row.add_prefix(Gtk.Image(icon_name=icon_name, pixel_size=32))
         row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
@@ -314,8 +315,9 @@ class SettingsWindow(Adw.ApplicationWindow):
         return group
 
     def _prompt_group(self):
-        group = Adw.PreferencesGroup(title="Prompt",
-                                     description="Starship, the line you type commands after")
+        group = Adw.PreferencesGroup(
+            title="Prompt",
+            description="Starship, the line you type commands after. UwUbuntu starts with Pastel Powerline")
         if not shutil.which("starship"):
             group.add(Adw.ActionRow(title="Starship isn't installed"))
             return group
@@ -373,8 +375,9 @@ class SettingsWindow(Adw.ApplicationWindow):
 
     # --- System (GNOME Settings panels) ---------------------------------------------
     def _panel_group(self, title, panels):
-        group = Adw.PreferencesGroup(title=title,
-                                     description="Opens the matching page of the system settings")
+        # No group title: the page header already names it, and libadwaita would read the
+        # "&" in titles like "Display & Sound" as broken markup.
+        group = Adw.PreferencesGroup(description="Opens the matching page of the system settings")
         for panel, row_title, subtitle in panels:
             row = self._link_row(row_title, subtitle)
             row.connect("activated", self._open_panel, panel)

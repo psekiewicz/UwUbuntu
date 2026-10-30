@@ -6,6 +6,7 @@ every two seconds. Your own processes can be ended from the list.
 """
 
 import getpass
+import os
 import sys
 
 import psutil
@@ -18,6 +19,14 @@ APP_ID = "org.uwubuntu.Monitor"
 REFRESH_SECONDS = 2
 TOP_PROCESSES = 8
 ME = getpass.getuser()
+MY_PID = os.getpid()
+# Ending these takes the whole desktop session (or sound, or the login) down with it.
+PROTECTED = {"gnome-shell", "gnome-session-binary", "gnome-session-ctl", "gdm-wayland-session",
+             "gdm-x-session", "Xwayland", "Xorg", "pipewire", "pipewire-pulse", "wireplumber",
+             "dbus-daemon", "dbus-broker", "systemd", "ibus-daemon", "at-spi-bus-launcher"}
+# Our own Python apps show up as "python3"; name them like their launchers do.
+APP_NAMES = {"uwu-monitor": "UwU Monitor", "uwu-settings": "UwU Settings",
+             "uwu-welcome": "UwU Welcome", "paw-updater": "Paw Updater"}
 
 
 def human_bytes(n):
@@ -25,6 +34,18 @@ def human_bytes(n):
         if abs(n) < 1024 or unit == "TB":
             return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
         n /= 1024
+
+
+def display_name(name, cmdline):
+    if name.startswith("python") and len(cmdline) > 1:
+        script = os.path.basename(cmdline[1])
+        return APP_NAMES.get(script, script)
+    return name
+
+
+def can_end(name, pid, username):
+    return (username == ME and pid != MY_PID and name not in PROTECTED
+            and not name.startswith("gsd-"))
 
 
 def mood(cpu, mem):
@@ -165,26 +186,29 @@ class MonitorWindow(Adw.ApplicationWindow):
 
     def _refresh_processes(self):
         procs = []
-        for proc in psutil.process_iter(["pid", "name", "username", "memory_info"]):
+        for proc in psutil.process_iter(["pid", "name", "username", "memory_info", "cmdline"]):
             try:
                 cpu = proc.cpu_percent(None)
             except psutil.Error:
                 continue
             info = proc.info
-            if not info.get("memory_info"):
+            # Kernel threads (kworker & co.) use no memory of their own: not worth listing.
+            if not info.get("memory_info") or info["memory_info"].rss == 0:
                 continue
             procs.append((cpu, info["memory_info"].rss, info, proc))
         procs.sort(key=lambda p: (p[0], p[1]), reverse=True)
 
         self.processes.remove_all()
         for cpu, rss, info, proc in procs[:TOP_PROCESSES]:
-            row = Adw.ActionRow(title=GLib.markup_escape_text(info["name"] or "?"),
+            name = info["name"] or "?"
+            title = display_name(name, info.get("cmdline") or [])
+            row = Adw.ActionRow(title=title, use_markup=False,
                                 subtitle=f"CPU {cpu:.0f}% · {human_bytes(rss)}"
                                          f" · {info.get('username') or '?'}")
-            if info.get("username") == ME:
+            if can_end(name, info["pid"], info.get("username")):
                 end = Gtk.Button(label="End", valign=Gtk.Align.CENTER)
                 end.add_css_class("flat")
-                end.connect("clicked", self._end_process, proc, info["name"])
+                end.connect("clicked", self._end_process, proc, title)
                 row.add_suffix(end)
             self.processes.append(row)
 
